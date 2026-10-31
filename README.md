@@ -1,8 +1,10 @@
 # Drift Protocol
 
-Solo radio-watch game with one hidden saboteur. You and three AI operators share a noisy signal. Each round you **Relay** a packet, **Edit** one field, or **Drop** it. After round 1, any living seat can call an accusation. Crew wins by ejecting the saboteur or by finishing with rescue at 60% or better. The saboteur wins by staying hidden while rescue finishes below 50%.
+Solo bay watch for eight seats. You and seven AI operators run the same check-in each round: match a phase dial, pick the in-band reading, or repair one glyph. Three seats are saboteurs, and they know each other. After you submit, the board shows every answer and its fingerprint. Integrity starts at 42%. Crew wins by ejecting all three saboteurs or by finishing at 70% or better. The saboteurs win by ejecting every crew seat, or by finishing below 55% with a saboteur still aboard.
 
-There is no backend. Version 2 is still a static client. The sea and the saboteur both come from the seed.
+**Implementation is pending.** The rules are approved. The client in this repository still runs the legacy signal loop (four seats, Relay / Edit / Drop, one saboteur, rescue at 60% / 50%). Exact bay rules: [docs/game-rules.md](docs/game-rules.md). Design and migration: [docs/superpowers/specs/2026-10-31-bay-checkins-design.md](docs/superpowers/specs/2026-10-31-bay-checkins-design.md). Slices: [docs/BACKLOG.md](docs/BACKLOG.md).
+
+There is no backend. The build is a static client. The check-ins and the cell both come from the seed.
 
 ## Run
 
@@ -11,7 +13,7 @@ npm install
 npm run dev
 ```
 
-Open the printed local URL. A full watch is 10 rounds by default (choose 8–12 on the start screen). Leave the seed blank, or enter one to replay the same sea and the same saboteur.
+Open the printed local URL. The start screen you get today is the legacy watch: 8–12 rounds, default 10. Leave the seed blank, or enter one to replay the same sea and the same saboteur. The approved watch uses that same length and the same idea of a replayed seed, with eight seats and three saboteurs, once the backlog lands.
 
 ```bash
 npm test
@@ -23,32 +25,34 @@ npm run preview
 
 ## How to play
 
-1. Read your role. You are either crew or the only saboteur. The other roles stay hidden until the end.
-2. Read your packet: three keyword tags and an amplitude.
-3. Choose Relay, Edit, or Drop. An edit must change exactly one keyword or the number.
-4. Set trust sliders for the seats still on the watch. They are normalized to shares.
-5. Commit. Only then do you see the other living seats, the recovered signal, and the rescue delta.
-6. After round 1, call an accusation or answer one. Living seats vote. A majority ejects. Ejected seats stay listed and cannot vote or transmit.
-7. Eject the saboteur and crew wins on the spot. Otherwise play the remaining rounds.
+These are the approved bay rules. The current screens still ask you to Relay, Edit, or Drop.
 
-The rescue meter has two marks. Below 50% at the end, a hidden saboteur wins. At 60% or above, crew wins even if the saboteur is still aboard. From 50% up to but not including 60%, the watch is a stalemate.
+1. Read your role. Crew learn only that they are crew. A saboteur sees the other two saboteurs, the cell's miss direction, and this round's plan.
+2. Each round, every living seat gets the same check-in.
+3. Submit in private.
+4. The board opens: every submission, its error class, its distance from the true answer, and that seat's instrument id. Integrity moves.
+5. Discuss with the board up. Notes stay on your console. From round 2, an AI may already have named someone; ballots stay closed until you take that name, name someone yourself, or move on. Round 1 has no vote.
+6. One accusation per round. A majority of the living seats ejects. Ejected seats stay listed and cannot check in or vote. A vote that continues does not announce the ejected seat's role.
+7. Eject all three saboteurs and crew wins on the spot. Eject every crew seat and the saboteurs win on the spot. Otherwise play the remaining check-ins.
 
-The other seats, when they are crew:
+The integrity meter has two marks. Below 55% at the end, with a saboteur still aboard, the saboteurs win. At 70% or above, crew wins even if saboteurs are still aboard. From 55% up to but not including 70%, the watch is a stalemate.
 
-- **Skeptic** keeps a Beta trust model and edits toward the trusted consensus.
-- **Pattern** relays familiar traffic, edits a single anomaly, and drops a packet that is wrong in more than one way.
-- **Explorer** is an epsilon-greedy bandit over the three actions.
+Crew AIs usually submit the true answer and sometimes miss. Saboteur AIs mostly check in clean, sometimes leave a shared near-miss, and rarely all miss on the same round. Thresholds live in [docs/game-rules.md](docs/game-rules.md).
 
-A saboteur AI mostly does that, then sometimes edits or drops to pull the packets apart. Channel quality is printed on the seats. Exact thresholds live in [docs/game-rules.md](docs/game-rules.md).
+## What the client does today
+
+Four seats share a noisy signal. One of them is the saboteur. You Relay, Edit, or Drop, then set trust. After round 1 anyone still on the watch can call an accusation. Crew wins by ejecting that saboteur or by finishing with rescue at 60% or better. The saboteur wins by staying hidden while rescue finishes below 50%. That loop is superseded. It remains playable until the bay slices replace it.
 
 ## Architecture
 
 ```
-src/game/   types, seeded RNG, signals, actions, scoring, roles, votes, session loop
-src/ai/     skeptic, pattern, explorer, plus sabotage and accusation policy
-src/ui/     start, round, accusation vote, result strip, summary
+src/game/   legacy signal loop: types, seeded RNG, signals, actions, scoring, roles, votes, session
+src/ai/     legacy skeptic, pattern, explorer, plus sabotage and accusation policy
+src/ui/     legacy start, round, accusation vote, result strip, summary
 ```
 
-The UI is a view over `createSession`, `submitRound`, `openMeeting`, `resolveMeeting`, and `nextRound`. AI decisions, votes, and rescue math are deterministic given the seed and the human choices. Vitest covers scoring, each agent’s relay, edit, and drop paths, role assignment, majority votes, and ejection.
+The UI is a view over `createSession`, `submitRound`, `openMeeting`, `resolveMeeting`, and `nextRound`. AI decisions, votes, and rescue math are deterministic given the seed and the human choices. Vitest covers scoring, each agent's relay, edit, and drop paths, role assignment, majority votes, and ejection.
 
-Out of scope: networked multiplayer, voice, maps, accounts, payments, language-model agents, and task minigames beyond the signal loop.
+Bay check-ins are the task layer this project is building. They are specified and not wired through these modules yet. The backlog adds them beside this tree, then removes the signal loop.
+
+Out of scope: networked multiplayer, voice, maps, accounts, payments, and language-model agents. The seat list is shaped so multiplayer can attach later. That attachment is not part of the current build.
