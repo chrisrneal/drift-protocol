@@ -1,5 +1,7 @@
 import { finishRound } from './session';
 import { livingSeats } from './roles';
+import { fillBallots } from './nominate';
+import { suspicionScores } from './suspicion';
 import type { BayBallot, BaySeatId, BaySession, MeetingRecord, Role } from './types';
 import { majorityEject } from './vote';
 
@@ -81,4 +83,20 @@ export function resolveMeeting(session: BaySession, votes: readonly BayBallot[])
     };
   }
   return finishRound({ ...session, ejected, meetings: [...session.meetings, record] });
+}
+
+export function castBallots(
+  session: BaySession,
+  humanVotes: Partial<Record<BaySeatId, BaySeatId | 'skip'>>,
+): BaySession {
+  if (session.phase !== 'meeting' || !session.meeting) throw new Error('No accusation is open.');
+  const filled = fillBallots({
+    voteState: session.voteState,
+    living: livingSeats(session.ejected),
+    controllers: session.controllers,
+    roles: session.cell.roles,
+    suspicion: suspicionScores(session.log),
+    humanVotes,
+  });
+  return resolveMeeting({ ...session, voteState: filled.voteState }, filled.ballots);
 }

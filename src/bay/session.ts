@@ -4,6 +4,7 @@ import { generatePuzzle } from './puzzles';
 import { assignCell, livingSeats, soloControllers } from './roles';
 import { checkInStreamStart, voteStreamStart } from './streams';
 import { fillAiAnswers } from './answers';
+import { evaluateNomination } from './nominate';
 import { INTEGRITY_START, MAX_ROUNDS, MIN_ROUNDS } from './constants';
 import {
   BAY_SEATS,
@@ -124,13 +125,23 @@ export function revealCheckIn(
     row: classified.row,
     delta: classified.delta,
   };
-  return {
+  const revealed: BaySession = {
     ...session,
     phase: 'discuss',
     integrity: integrityAfter,
     log: [...session.log, record],
     pendingCall: null,
   };
+  if (session.roundIndex < 1) return revealed;
+  const nomination = evaluateNomination({
+    roundIndex: session.roundIndex,
+    voteState: session.voteState,
+    controllers: session.controllers,
+    roles: session.cell.roles,
+    ejected: session.ejected,
+    log: revealed.log,
+  });
+  return { ...revealed, pendingCall: nomination.pendingCall, voteState: nomination.voteState };
 }
 
 function saboteurAboard(session: BaySession): boolean {
