@@ -35,7 +35,8 @@ body {
 
 button,
 input,
-select {
+select,
+textarea {
   font: inherit;
   color: inherit;
 }
@@ -289,12 +290,12 @@ button.choice {
   gap: 12px;
 }
 
-.rescue-readout {
+.integrity-readout {
   text-align: right;
   font-family: ui-monospace, Menlo, Consolas, monospace;
 }
 
-.rescue-readout span {
+.integrity-readout span {
   display: block;
   color: var(--dim);
   font-size: 12px;
@@ -302,7 +303,7 @@ button.choice {
   text-transform: uppercase;
 }
 
-.rescue-readout strong {
+.integrity-readout strong {
   font-size: 28px;
   color: var(--phosphor);
 }
@@ -527,4 +528,26 @@ button.choice {
   .watch-head {
     align-items: flex-start;
   }
+}
+
+textarea {
+  background: var(--inset);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 8px;
+}
+
+.notes {
+  width: 100%;
+  min-height: 7rem;
+}
+
+.fingerprint {
+  font-family: ui-monospace, "Cascadia Code", Menlo, Consolas, monospace;
+  color: var(--dim);
+}
+
+.board {
+  display: grid;
+  gap: 8px;
 }
