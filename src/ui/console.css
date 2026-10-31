@@ -35,7 +35,8 @@ body {
 
 button,
 input,
-select {
+select,
+textarea {
   font: inherit;
   color: inherit;
 }
@@ -527,4 +528,26 @@ button.choice {
   .watch-head {
     align-items: flex-start;
   }
+}
+
+textarea {
+  background: var(--inset);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 8px;
+}
+
+.notes {
+  width: 100%;
+  min-height: 7rem;
+}
+
+.fingerprint {
+  font-family: ui-monospace, "Cascadia Code", Menlo, Consolas, monospace;
+  color: var(--dim);
+}
+
+.board {
+  display: grid;
+  gap: 8px;
 }
