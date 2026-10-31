@@ -32,6 +32,8 @@ export type HumanChoice = {
 export type Emission = {
   seat: SeatId;
   packet: Packet | null;
+  /** Ejected seats are absent. A null packet without this flag is a drop. */
+  absent?: boolean;
 };
 
 export type ReliabilityStats = {

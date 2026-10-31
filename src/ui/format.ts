@@ -24,6 +24,9 @@ export function packetKeywords(packet: Packet): string {
 }
 
 export function trustLine(from: SeatId, trust: TrustWeights): string {
-  const seats = from === 'you' ? AI_SEATS : SEATS.filter((seat) => seat !== from);
+  const seats = (from === 'you' ? [...AI_SEATS] : SEATS.filter((seat) => seat !== from)).filter((seat) =>
+    Object.prototype.hasOwnProperty.call(trust, seat),
+  );
+  if (seats.length === 0) return 'none';
   return seats.map((seat) => `${SEAT_NAME[seat]} ${percent(trust[seat] ?? 0)}`).join(' · ');
 }

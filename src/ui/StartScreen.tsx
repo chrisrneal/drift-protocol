@@ -31,9 +31,9 @@ export function StartScreen({ onStart }: StartScreenProps) {
       <p className="kicker">RV Argo · radio watch</p>
       <h1>Drift Protocol</h1>
       <p className="lede">
-        You are the lead operator. Each round a signal arrives already dirty. Relay it, edit one field, or drop it.
-        Three other seats do the same. Rescue depends on how well the emitted packets agree, and on whether trust
-        tracks who has actually been reliable.
+        Four seats share a noisy signal. One of them is the saboteur. Relay, edit, or drop each packet, then accuse
+        the seat whose traffic stops agreeing. Crew wins by ejecting the saboteur or by holding rescue at 60%. The
+        saboteur wins by staying hidden while rescue finishes below 50%.
       </p>
 
       <section className="panel" aria-labelledby="watch-setup">
@@ -69,16 +69,17 @@ export function StartScreen({ onStart }: StartScreenProps) {
       </section>
 
       <section className="panel" aria-labelledby="how">
-        <h2 id="how">How a round goes</h2>
+        <h2 id="how">How a watch goes</h2>
         <ol className="steps">
-          <li>Read your packet. Keywords are tags. The number is amplitude.</li>
-          <li>Relay sends it unchanged. Edit changes one keyword or the number. Drop sends nothing.</li>
-          <li>Set trust for the other seats. The weights are normalized when you commit.</li>
-          <li>Their actions stay sealed until you commit. Then the recovered signal is shown.</li>
+          <li>You see your own role. Everyone else stays hidden until the watch ends.</li>
+          <li>Read your packet. Relay it, edit one field, or drop it. Living seats do the same.</li>
+          <li>After round 1, any living seat can call one accusation per round.</li>
+          <li>Votes need a majority of the seats still on the watch. Ejected seats stay visible and cannot vote.</li>
+          <li>Eject the saboteur and crew wins immediately. Eject crew and the watch continues.</li>
         </ol>
         <p className="fine">
-          There is no hidden traitor. Channels just differ in quality. A rescue holds if the meter finishes at 60% or
-          better.
+          Between 50% and 60% at the end, with the saboteur still aboard, the watch is a stalemate. Exact lines are in
+          the rules.
         </p>
       </section>
 
@@ -94,6 +95,10 @@ export function StartScreen({ onStart }: StartScreenProps) {
             </li>
           ))}
         </ul>
+        <p className="fine">
+          When you are crew, exactly one of them is the saboteur. When you are the saboteur, all three are crew. A
+          saboteur mostly plays the honest policy, then sometimes edits or drops to drag rescue down.
+        </p>
       </section>
     </main>
   );

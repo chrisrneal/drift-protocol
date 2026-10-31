@@ -11,7 +11,7 @@ export default defineConfig({
       manifest: {
         name: 'Drift Protocol',
         short_name: 'Drift',
-        description: 'Solo radio-watch game. Relay, edit, or drop noisy signal packets.',
+        description: 'Solo radio watch. Find the saboteur, or survive long enough to sink the rescue.',
         theme_color: '#101614',
         background_color: '#101614',
         display: 'standalone',

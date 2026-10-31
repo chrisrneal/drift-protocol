@@ -64,11 +64,16 @@ export function normalizeWeights(weights: TrustWeights, seats: readonly SeatId[]
 export function trustAlignment(
   assigned: Array<{ from: SeatId; weights: TrustWeights }>,
   reliability: Record<SeatId, number>,
+  active: readonly SeatId[] = SEATS,
 ): number {
   if (assigned.length === 0) return 0;
   let total = 0;
   for (const row of assigned) {
-    const seats = SEATS.filter((seat) => seat !== row.from);
+    const seats = active.filter((seat) => seat !== row.from);
+    if (seats.length === 0) {
+      total += 1;
+      continue;
+    }
     const weights = normalizeWeights(row.weights, seats);
     const relRaw = seats.map((seat) => Math.max(0, reliability[seat] ?? 0.5));
     const relSum = relRaw.reduce((sum, value) => sum + value, 0);

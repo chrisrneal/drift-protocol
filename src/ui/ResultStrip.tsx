@@ -1,4 +1,3 @@
-import { useEffect, useRef } from 'react';
 import { CHANNELS } from '../game/constants';
 import type { RoundResolution } from '../game/loop';
 import { SEATS } from '../game/types';
@@ -6,22 +5,15 @@ import { SEAT_NAME, packetKeywords, percent, signedPercent, trustLine } from './
 
 type ResultStripProps = {
   resolution: RoundResolution;
-  lastRound: boolean;
-  onNext: () => void;
 };
 
-export function ResultStrip({ resolution, lastRound, onNext }: ResultStripProps) {
-  const nextRef = useRef<HTMLButtonElement>(null);
+export function ResultStrip({ resolution }: ResultStripProps) {
   const delta = resolution.rescueAfter - resolution.rescueBefore;
-
-  useEffect(() => {
-    nextRef.current?.focus();
-  }, []);
 
   return (
     <section className="panel result" aria-live="polite" aria-labelledby="resolved-title">
       <h2 id="resolved-title">Round resolved</h2>
-      <p className="fine">Recovered signal, hidden until every seat had committed.</p>
+      <p className="fine">Recovered signal, hidden until every living seat had committed.</p>
       <div className="packet compact">
         <div className="keywords">
           {resolution.truth.keywords.map((word, index) => (
@@ -41,17 +33,24 @@ export function ResultStrip({ resolution, lastRound, onNext }: ResultStripProps)
           const decision = resolution.decisions[seat];
           const heard = resolution.observations[seat];
           const sent = resolution.emissions[seat];
+          const gone = resolution.outOfPlay.includes(seat);
           return (
-            <li key={seat}>
+            <li key={seat} className={gone ? 'ejected' : undefined}>
               <header>
                 <strong>{SEAT_NAME[seat]}</strong>
-                <span>
-                  {CHANNELS[seat].grade} · {decision.kind}
-                </span>
+                <span>{gone ? 'Ejected' : `${CHANNELS[seat].grade} · ${decision.kind}`}</span>
               </header>
-              <p>Heard {packetKeywords(heard)} · {heard.value}</p>
-              <p>{sent ? `Sent ${packetKeywords(sent)} · ${sent.value}` : 'Sent nothing'}</p>
-              <p className="fine">Trust {trustLine(seat, decision.trust)}</p>
+              {gone ? (
+                <p>Off the console. No transmission and no vote.</p>
+              ) : (
+                <>
+                  <p>
+                    Heard {packetKeywords(heard)} · {heard.value}
+                  </p>
+                  <p>{sent ? `Sent ${packetKeywords(sent)} · ${sent.value}` : 'Sent nothing'}</p>
+                  <p className="fine">Trust {trustLine(seat, decision.trust)}</p>
+                </>
+              )}
             </li>
           );
         })}
@@ -74,10 +73,6 @@ export function ResultStrip({ resolution, lastRound, onNext }: ResultStripProps)
           </dd>
         </div>
       </dl>
-
-      <button ref={nextRef} type="button" className="primary" onClick={onNext}>
-        {lastRound ? 'Close the watch' : 'Next signal'}
-      </button>
     </section>
   );
 }
