@@ -26,3 +26,24 @@ describe('phase dial', () => {
     expect(generatePuzzle(0, 0)).toEqual(generatePuzzle(0, 0));
   });
 });
+
+describe('in-band reading', () => {
+  it('draws the locked reading for seed 0 round 1', () => {
+    expect(generatePuzzle(0, 1)).toEqual({
+      kind: 'reading',
+      anchor: 55,
+      offset: 6,
+      band: [55, 62],
+      options: [
+        { label: 'R1', role: 'near', value: 53 },
+        { label: 'R2', role: 'far', value: 75 },
+        { label: 'R3', role: 'true', value: 61 },
+        { label: 'R4', role: 'far', value: 39 },
+        { label: 'R5', role: 'far', value: 89 },
+      ],
+      truth: 'R3',
+      near: ['R1'],
+      blatant: ['R2', 'R4', 'R5'],
+    });
+  });
+});
