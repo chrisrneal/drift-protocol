@@ -25,57 +25,73 @@ export const INSTRUMENT: Record<BaySeatId, string> = {
 
 export type Controller = 'human' | 'ai';
 export type Role = 'crew' | 'saboteur';
-export type CellSign = 1 | -1;
+export type CellLean = 'step' | 'trap';
+export type Difficulty = 'easy' | 'medium' | 'harder';
 export type Posture = 'honest' | 'near-miss' | 'blatant';
 export type ErrorClass = 'exact' | 'near-miss' | 'blatant';
-
-export const GLYPH_ALPHABET = ['B', 'D', 'F', 'H', 'K', 'P', 'R', 'T'] as const;
-export type GlyphSymbol = (typeof GLYPH_ALPHABET)[number];
-export type ReadingLabel = 'R1' | 'R2' | 'R3' | 'R4' | 'R5';
+export type ChoiceLabel = 'A' | 'B' | 'C' | 'D' | 'E';
+export type OddIndex = 1 | 2 | 3 | 4;
 
 export type BayAnswer =
-  | { kind: 'dial'; detent: number }
-  | { kind: 'reading'; label: ReadingLabel }
-  | { kind: 'glyph'; symbol: GlyphSymbol };
+  | { kind: 'fact'; label: ChoiceLabel }
+  | { kind: 'number'; value: number }
+  | { kind: 'number'; label: ChoiceLabel }
+  | { kind: 'odd'; index: OddIndex };
 
-export type DialPuzzle = {
-  kind: 'dial';
-  a: number;
-  b: number;
-  truth: number;
-  near: [number, number];
-  blatant: number[];
-};
-
-export type ReadingOption = {
-  label: ReadingLabel;
-  value: number;
+export type FactOption = {
+  label: ChoiceLabel;
+  text: string;
   role: 'true' | 'near' | 'far';
 };
 
-export type ReadingPuzzle = {
-  kind: 'reading';
-  anchor: number;
-  offset: number;
-  band: [number, number];
-  options: [ReadingOption, ReadingOption, ReadingOption, ReadingOption, ReadingOption];
-  truth: ReadingLabel;
-  near: [ReadingLabel];
-  blatant: ReadingLabel[];
+export type NumberOption = {
+  label: ChoiceLabel;
+  value: number;
+  role: 'true' | 'near' | 'anti' | 'far';
 };
 
-export type GlyphPuzzle = {
-  kind: 'glyph';
-  indexes: [number, number, number, number];
-  blank: 0 | 1 | 2 | 3;
-  seal: number;
-  shown: [GlyphSymbol | null, GlyphSymbol | null, GlyphSymbol | null, GlyphSymbol | null];
-  truth: GlyphSymbol;
-  near: [GlyphSymbol, GlyphSymbol];
-  blatant: GlyphSymbol[];
+export type OddOption = {
+  index: OddIndex;
+  text: string;
+  role: 'true' | 'near' | 'far';
 };
 
-export type Puzzle = DialPuzzle | ReadingPuzzle | GlyphPuzzle;
+export type FactPuzzle = {
+  kind: 'fact';
+  id: string;
+  difficulty: Difficulty;
+  prompt: string;
+  options: [FactOption, FactOption, FactOption, FactOption, FactOption];
+  truth: ChoiceLabel;
+  near: [ChoiceLabel];
+  blatant: ChoiceLabel[];
+};
+
+export type NumberPuzzle = {
+  kind: 'number';
+  id: string;
+  difficulty: Difficulty;
+  prompt: string;
+  options: [NumberOption, NumberOption, NumberOption, NumberOption, NumberOption];
+  truth: number;
+  step: number;
+  trap: number;
+  near: [number];
+  blatant: number[];
+};
+
+export type OddPuzzle = {
+  kind: 'odd';
+  id: string;
+  difficulty: Difficulty;
+  prompt: string;
+  options: [OddOption, OddOption, OddOption, OddOption];
+  truth: OddIndex;
+  near: [OddIndex];
+  blatant: OddIndex[];
+};
+
+export type Puzzle = FactPuzzle | NumberPuzzle | OddPuzzle;
 
 export type Fingerprint = {
   errorClass: ErrorClass;
@@ -85,13 +101,19 @@ export type Fingerprint = {
 
 export type Cell = {
   saboteurs: [BaySeatId, BaySeatId, BaySeatId];
-  sign: CellSign;
+  lean: CellLean;
   roles: Record<BaySeatId, Role>;
 };
 
 export type RoleView =
   | { role: 'crew' }
-  | { role: 'saboteur'; partners: BaySeatId[]; sign: CellSign; plan: Posture | null };
+  | {
+      role: 'saboteur';
+      partners: BaySeatId[];
+      lean: CellLean;
+      plan: Posture | null;
+      choice: string | null;
+    };
 
 export type BayPhase = 'check-in' | 'discuss' | 'meeting' | 'done';
 export type IntegrityRow = 'aligned' | 'false-consensus' | 'near-miss-cluster' | 'split';

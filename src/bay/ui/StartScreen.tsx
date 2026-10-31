@@ -30,10 +30,10 @@ export function StartScreen({ onStart }: StartScreenProps) {
       <p className="kicker">RV Argo · bay watch</p>
       <h1>Drift Protocol</h1>
       <p className="lede">
-        Eight seats run the same check-in. Three of them are saboteurs, and they know each other. Submit in private,
-        then read the board. Integrity starts at 42%. Crew wins by ejecting all three saboteurs or by finishing at 70%
-        or better. The saboteurs win by ejecting every crew seat, or by finishing below 55% with one of them still
-        aboard.
+        Eight seats answer the same quiz: a quick fact, a number-sense problem, or an odd one out. Three of them are
+        saboteurs, and they know each other. Submit in private, then read the board. Integrity starts at 42%. Crew
+        wins by ejecting all three saboteurs or by finishing at 70% or better. The saboteurs win by ejecting every
+        crew seat, or by finishing below 55% with one of them still aboard.
       </p>
       <section className="panel" aria-labelledby="watch-setup">
         <h2 id="watch-setup">Open a watch</h2>
@@ -69,8 +69,11 @@ export function StartScreen({ onStart }: StartScreenProps) {
       <section className="panel" aria-labelledby="how">
         <h2 id="how">How a watch goes</h2>
         <ol className="steps">
-          <li>You are Helm. Crew see only their own role. A saboteur sees the other two, the cell sign, and this round&apos;s plan.</li>
-          <li>Every living seat gets the same check-in and submits in private.</li>
+          <li>
+            You are Helm. Crew see only their own role. A saboteur sees the other two, the cell lean (off-by-one or
+            wrong rule), and this round&apos;s plan. A near-miss plan also names the choice.
+          </li>
+          <li>Every living seat gets the same quiz. Rounds cycle easy, medium, harder. Submit in private.</li>
           <li>The board opens. Each answer shows its error class, its distance, and its instrument id. Integrity moves.</li>
           <li>Discuss with the board up. Notes stay on this console. Round 1 has no vote.</li>
           <li>From round 2, take a waiting nomination, name someone yourself, or advance. Advancing spends that round&apos;s accusation.</li>

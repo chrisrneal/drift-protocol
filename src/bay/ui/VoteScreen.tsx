@@ -14,7 +14,7 @@ export function VoteScreen({ session, onCast }: VoteScreenProps) {
   const living = livingSeats(session.ejected);
   const helmLiving = living.includes('helm');
   const [choice, setChoice] = useState<BaySeatId | 'skip' | null>(null);
-  const view = viewFor('helm', session.cell, session.plan?.postures.helm ?? null);
+  const view = viewFor('helm', session.cell, session.plan?.postures.helm ?? null, session.puzzle);
   if (!meeting) return null;
 
   return (

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { blatantAnswers, signedNearAnswer, truthAnswer } from './fingerprint';
+import { blatantAnswers, nearAnswers, truthAnswer } from './fingerprint';
 import { openAccusation, resolveMeeting, castBallots } from './meeting';
 import { livingSeats } from './roles';
 import { advance, createBaySession, replayKey, submitHumans } from './session';
@@ -36,11 +36,15 @@ describe('full watches', () => {
     expect(stalemate.winReason).toBe('stalemate');
     expect(stalemate.log.map((record) => record.delta)).toEqual([-350, 400, 400, -350, 400, 400, 400, 400, 400, 400]);
 
-    const held = playMeter(23, (session) => signedNearAnswer(session.puzzle, session.cell.sign));
-    expect(held.integrity).toBe(5200);
+    const held = playMeter(23, (session) => {
+      const near = nearAnswers(session.puzzle)[0];
+      if (!near) throw new Error('Missing near answer.');
+      return near;
+    });
+    expect(held.integrity).toBe(5100);
     expect(held.winner).toBe('saboteur');
     expect(held.winReason).toBe('integrity-held');
-    expect(held.log.map((record) => record.delta)).toEqual([-350, -350, 400, 400, 400, -350, 400, 400, 400, -350]);
+    expect(held.log.map((record) => record.delta)).toEqual([-350, -450, 400, 400, 400, -350, 400, 400, 400, -350]);
   });
 
   it('ejects all three saboteurs and publishes a role only on the ending vote', () => {

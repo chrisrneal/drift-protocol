@@ -18,7 +18,7 @@ describe('createBaySession', () => {
     expect(session.phase).toBe('check-in');
     expect(session.integrity).toBe(4200);
     expect(session.roundIndex).toBe(0);
-    expect(session.puzzle).toEqual(generatePuzzle(42, 0));
+    expect(session.puzzle).toEqual(generatePuzzle(42, 0, session.cell.lean));
     expect(session.cell).toEqual(assignCell(42));
     expect(session.controllers.helm).toBe('human');
     expect(session.controllers.sonar).toBe('ai');
@@ -72,7 +72,7 @@ describe('reveal and discuss', () => {
     expect(session.phase).toBe('check-in');
     expect(session.roundIndex).toBe(1);
     expect(session.integrity).toBe(4600);
-    expect(session.puzzle).toEqual(generatePuzzle(42, 1));
+    expect(session.puzzle).toEqual(generatePuzzle(42, 1, assignCell(42).lean));
     expect(session.meetings).toEqual([]);
     expect(session.voteState).toBe(voteStreamStart(42));
   });

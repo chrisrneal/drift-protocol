@@ -1,6 +1,6 @@
 import { intBetween, rngStep } from '../game/rng';
 import { CREW_EXACT_BELOW, CREW_NEAR_BELOW } from './constants';
-import { blatantAnswers, nearAnswers, signedNearAnswer, truthAnswer } from './fingerprint';
+import { blatantAnswers, nearAnswers, truthAnswer } from './fingerprint';
 import { posturesFor } from './plan';
 import { livingSeats } from './roles';
 import {
@@ -76,7 +76,8 @@ export function fillAiAnswers(input: {
         state = rolled.state;
         prepared[seat] = fromList(blatant, rolled.value);
       } else if (posture === 'near-miss') {
-        prepared[seat] = signedNearAnswer(input.puzzle, input.cell.sign);
+        const near = nearAnswers(input.puzzle);
+        prepared[seat] = fromList(near, 0);
         state = consumeIgnoredDraw(state);
       } else {
         prepared[seat] = truthAnswer(input.puzzle);

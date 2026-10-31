@@ -32,6 +32,8 @@ export const SUSPICION_PATTERN_WEIGHT = 0.25;
 export const ROLE_STREAM_MASK = 0xa5a5a5a5;
 export const PUZZLE_STREAM_MASK = 0x0b47c1ec;
 export const PUZZLE_STREAM_ADD = 0x6d2b79f5;
+export const ITEM_STREAM_MASK = 0x71e1e000;
+export const ITEM_STREAM_ADD = 0x85ebca6b;
 export const CHECKIN_STREAM_MASK = 0x0c1ec31a;
 export const VOTE_STREAM_MASK = 0x707e0001;
 
