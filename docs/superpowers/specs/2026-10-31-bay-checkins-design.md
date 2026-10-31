@@ -2,28 +2,30 @@
 
 Approved 2026-10-31. Normative rules: [docs/game-rules.md](../../game-rules.md). If a number here and a number there disagree, `game-rules.md` wins and this spec should be corrected.
 
-This document records the objective, the locked social shape, the round flow, and the migration off the signal loop. Implementation slices are summarized at the end and spelled out in [docs/BACKLOG.md](../../BACKLOG.md).
+This document records the bay's social layer: eight seats, three saboteurs, parallel check-ins, fingerprints, integrity, and discuss-before-vote. That layer is the client. `src/main.tsx` mounts `BayApp`.
 
-No gameplay code lands with this spec. The running client remains the legacy watch.
+The calibration puzzles and the ±1 cell sign are superseded by the [Everyday quiz trio](2026-10-31-everyday-quiz-trio-design.md). They are not the live check-in. Where this document names a phase dial, an in-band reading, a corrupted glyph, or a cell sign, follow the quiz spec and `game-rules.md`.
+
+Quiz cutover slices are in [docs/BACKLOG.md](../../BACKLOG.md). The social-layer migration off the signal loop is recorded below; that migration has landed.
 
 ## Supersedes
 
-The shipped watch is a four-seat signal loop.
+Parallel Bay Check-ins replaced a four-seat signal loop. That loop is not the client.
 
 - Seats: Helm's predecessor `you`, plus Skeptic, Pattern, and Explorer.
 - Task: each living seat hears a private noisy packet and chooses Relay, Edit, or Drop. Trust sliders feed the rescue formula.
 - Threat: exactly one saboteur. Ejecting that seat ends the watch, so a vote that continues proves the ejected seat was crew.
 - Meter: rescue starts at 42%. Crew wins at or above 60%. A hidden saboteur wins strictly below 50%. The band from 50% up to but not including 60% is a stalemate.
 
-Parallel Bay Check-ins replaces that objective. The seed, the static client, the mulberry32 generator, the living-seat roster, and "one accusation per round, strict majority ejects" stay. Packets, trust, rescue, and the three signal policies go away when the backlog reaches the cutover.
+Parallel Bay Check-ins replaced that objective. The seed, the static client, the mulberry32 generator, the living-seat roster, and "one accusation per round, strict majority ejects" stayed. Packets, trust, rescue, and the three signal policies are gone.
 
 ## Objective
 
-Eight seats calibrate one bay. Each round, every living seat works the same check-in and submits in private. The board then shows every answer beside a fingerprint. Integrity moves from that board. From round 2, the seats may discuss with the board up and then eject someone.
+Eight seats share one bay watch. Each round, every living seat works the same check-in and submits in private. The board then shows every answer beside a fingerprint. Integrity moves from that board. From round 2, the seats may discuss with the board up and then eject someone.
 
 Crew are trying to leave a record of true check-ins, and to remove the cell. The cell is trying to bend the record without looking like a single broken instrument, and to survive aboard.
 
-The puzzle family is a calibration chain: phase dial, in-band reading, corrupted glyph. The information shape is parallel. The same prompt goes to every living seat. One seat's answer never becomes the next seat's prompt. "Chain" is the fiction of one reference standard passing through the bay. It is not a serial task.
+The check-in is the Everyday quiz trio: quick fact, number sense, odd one out. The information shape is parallel. The same prompt goes to every living seat. One seat's answer never becomes the next seat's prompt. The three kinds are not a serial task.
 
 ## Players and roles
 
@@ -34,8 +36,8 @@ Exactly three saboteurs. They know each other. Exactly five crew. Crew see only 
 Shared cell knowledge is:
 
 - the identities of the three saboteurs
-- one cell sign for the whole watch, either +1 or −1
-- that round's plan for the viewing saboteur: honest, near-miss, or blatant
+- one cell lean for the whole watch, either off-by-one or wrong rule, defined in the quiz spec
+- that round's plan for the viewing saboteur: honest, near-miss, or blatant. A near-miss plan includes the choice label from the quiz spec
 
 There is no saboteur chat channel. Coordination is that shared knowledge plus the public boards from earlier rounds. AI saboteurs follow the plan. A human saboteur is told the plan and may ignore it.
 
@@ -57,17 +59,9 @@ Meter thresholds do not end the watch in the middle. A bay can cross 70% and sti
 
 ## Puzzles
 
-Deterministic from seed and round index, on a stream that does not depend on answers or ejections. The kind draw is 0, 1, or 2: phase dial, in-band reading, corrupted glyph. Generators, alphabets, distances, and the reseed formula are normative in `game-rules.md`.
+The live check-in is the Everyday quiz trio. Generators, the question bank, distances, the cell lean, and the reseed formula are normative in `game-rules.md` and specified in [Everyday quiz trio](2026-10-31-everyday-quiz-trio-design.md).
 
-Each kind reduces to a finite answer list, one true key, a near-miss set, and a blatant set.
-
-| Kind | What Helm solves | Near-miss | Direction |
-| --- | --- | --- | --- |
-| Phase dial | `(A + B) mod 12` on detents 0–11 | Circular neighbors | Cell sign picks the neighbor |
-| In-band reading | The one value inside the published band, among five labeled readings | The single decoy two units below the band | No direction |
-| Corrupted glyph | The blank symbol that restores the seal (alphabet indexes sum to the published total modulo 8) | Alphabet-ring neighbors | Cell sign picks the neighbor |
-
-The prompt is sufficient. AI crew compute the truth from that prompt, then apply the error table.
+The first bay puzzles were a phase dial, an in-band reading, and a corrupted glyph, including a modular seal. That family is retired. Each live kind still reduces to a finite answer list, one true key, a near-miss set of size 1, and a blatant set. The console prompt omits the true key. The card the AI reads carries the bank's true key.
 
 ## Fingerprints
 
@@ -79,7 +73,7 @@ Each living submission on the board carries:
 
 The instrument id is public from the roster onward. It is repeated on the fingerprint so a board, a note, and a later multiplayer client can cite `INST-4` without depending on a display name.
 
-Integrity classifies answers by canonical key (detent, reading label, or glyph symbol) and by error class. It does not sum distances across kinds.
+Integrity classifies answers by canonical key (a fact label, a number value, or an odd-one-out index) and by error class. It does not sum distances across kinds.
 
 ## Integrity
 
@@ -149,11 +143,11 @@ Ejecting one or two saboteurs does not win and does not identify them.
 
 Seven AIs. One check-in policy for crew, one cell plan for saboteurs. Per-seat channel personalities are not carried over. Skeptic, Pattern, and Explorer were policies for noisy packets.
 
-Crew, each check-in, independent of the cell sign: probability 0.82 exact, 0.15 near-miss uniform on the near keys, 0.03 blatant uniform on the blatant keys. A single crew near-miss is meant to look like a saboteur near-miss. The tell is cross-round: saboteur neighbors share a sign, and the same instruments nick on the rotation.
+Crew, each check-in: probability 0.82 exact, 0.15 on the card's single near key, 0.03 blatant uniform on the blatant keys. A crew near-slip lands on the same key as a saboteur near-miss, because the card has one near key. The tell is cross-round: the same instruments nick, and number-sense nicks share the watch lean's mark. The lean and the mark are normative in `game-rules.md`.
 
 Saboteur AIs take one shared plan per round so they are rarely all wrong together. With three alive, probability 0.50 all honest, 0.30 exactly one near-miss, 0.12 exactly two near-misses, 0.05 exactly one blatant, and 0.03 all three near-miss. The all-near row is the rare all-wrong round. Plans for two living saboteurs and for one are in `game-rules.md`. The primary nick walks the living cell by round index.
 
-Suspicion for votes is public: a miss mean (exact 0, near-miss 0.55, blatant 1) mixed 3:1 with how often that seat's signed misses match the modal sign on the log. Readings do not carry a sign. Dial and glyph misses do. Crew AIs call at suspicion 0.40. They never auto-call from Helm's seat. The call is evaluated when discuss opens, from round 2 on, and waits as a pending nomination. If no crew AI would call, a saboteur AI frames at probability 0.12 above suspicion 0.30, and never names a partner. On the ballot, a saboteur AI votes for themselves at probability 0.08. Partners are excluded from saboteur nominations.
+Suspicion for votes is public: a miss mean (exact 0, near-miss 0.55, blatant 1) mixed 3:1 with how often that seat's lean marks match the modal mark on the log. Quick-fact and odd-one-out submissions do not carry a mark. A number-sense submission of `truth + 1` or of the trap value does. Crew AIs call at suspicion 0.40. They never auto-call from Helm's seat. The call is evaluated when discuss opens, from round 2 on, and waits as a pending nomination. If no crew AI would call, a saboteur AI frames at probability 0.12 above suspicion 0.30, and never names a partner. On the ballot, a saboteur AI votes for themselves at probability 0.08. Partners are excluded from saboteur nominations.
 
 Draw order, constants, and the "consume the draw even when it is ignored" rule are in `game-rules.md`. They exist so a replay does not depend on which branch an AI took.
 
@@ -165,7 +159,7 @@ Not built now. The rules engine should still look like this when it is built:
 
 - A seat is an id, a display name, an instrument id, and a controller (`human` or `ai`). Solo sets Helm to `human` and the other seven to `ai`.
 - The engine accepts an external submission or ballot for every seat whose controller is `human`. It fills `ai` seats itself.
-- Role visibility is per viewer. A crew viewer does not receive the cell. A saboteur viewer receives the other saboteur ids, the sign, and their plan.
+- Role visibility is per viewer. A crew viewer does not receive the cell. A saboteur viewer receives the other saboteur ids, the cell lean, and their plan. A near-miss plan includes the choice label.
 - Authoritative state is puzzles, submissions, fingerprints, integrity, ejections, votes, and roles. Notes stay on the client.
 - The payloads a later socket would carry are already the in-process events: check-in submit, reveal board, meeting call, ballot.
 
@@ -190,18 +184,18 @@ These were not spelled out as separate product locks. They are specified so the 
 | Discuss length | A mandatory phase, not a timer |
 | Ballot | Keep the legacy ballot: name any living seat or skip. A strict majority ejects |
 | Crew AI | One shared error table. Packet personalities retire |
-| Cell channel | No private chat. Sign, identities, and the round plan are the cell |
-| Reading pattern | One near decoy, so the sign is visible on dial and glyph rounds only |
+| Cell channel | No private chat. The lean, the identities, and the round plan are the cell |
+| Cell lean | One watch-long preference, off-by-one or wrong rule. Number cards mark the other neighbor as blatant. Facts and odd one out have no suspicion mark |
 | Notes | Local 2000-character scratchpad, unscored |
 
 ## Migration from the signal loop
 
-Build the new watch beside the legacy loop so `npm test` and the current client stay green until cutover. Suggested home for the new modules: `src/bay/`. Do not fold eight seats into `SEATS` while `src/game/loop.ts` still expects four packet emitters.
+This migration has landed. The bay modules live in `src/bay/`, and the client mounts `BayApp`. The notes below are the record of that cutover, not remaining work.
 
 | Legacy | Bay check-ins |
 | --- | --- |
 | `you`, `skeptic`, `pattern`, `explorer` | `helm`, `sonar`, `radio`, `nav`, `plant`, `deck`, `medic`, `cargo` |
-| `assignSaboteur` returns one id | Role stream returns a set of three, plus a sign |
+| `assignSaboteur` returns one id | Role stream returns a set of three, plus a cell lean |
 | Private noisy packet | Shared puzzle, private submission, public truth on reveal |
 | Relay, Edit, Drop | One answer, fingerprinted as honest, near-miss, or blatant |
 | Trust weights, consistency, alignment | Removed. The board is the evidence |
@@ -217,15 +211,8 @@ Win-reason ids to retire: `saboteur-ejected`, `rescue-window`, `saboteur-survive
 
 ## Backlog
 
-Detail and done-when lines: [docs/BACKLOG.md](../../BACKLOG.md).
+The social-layer slices have landed: seats and roles, integrity, discuss, accusations, the seven AI seats, full-watch tests, and removal of the signal loop.
 
-1. Seats and roles (8 seats, 3 saboteurs, cell visibility, Helm human).
-2. Puzzle engine and fingerprints.
-3. Integrity meter.
-4. Discuss phase and the check-in / reveal / discuss flow.
-5. Accusations updated for 8 seats and 3 saboteurs.
-6. Seven AI seats (crew table, cell plan, votes).
-7. Full-watch tests.
-8. Remove the signal loop and point the client at bay check-ins.
+Remaining work is the quiz cutover in [docs/BACKLOG.md](../../BACKLOG.md): the question bank, the quiz generator, the cell lean, the check-in UI, and a full-watch replay on those cards.
 
 Networked multiplayer and language-model agents are not slices of this objective.

@@ -1,6 +1,6 @@
 # Drift Protocol rules
 
-These rules supersede the signal-loop watch (four seats, Relay / Edit / Drop, one saboteur, rescue at 60% / 50%). That watch is legacy. The client still runs it until the bay check-in backlog lands. This document is the source of truth for Parallel Bay Check-ins.
+These rules are the source of truth for Parallel Bay Check-ins. The signal-loop watch (four seats, Relay / Edit / Drop, one saboteur, rescue at 60% / 50%) is retired. Check-ins are the Everyday quiz trio. If a design note disagrees with a number here, this document wins.
 
 A bay check is a solo watch. You and seven AI seats share each round, eight seats in all. Exactly three seats are saboteurs. They know each other. The other five are crew.
 
@@ -8,9 +8,9 @@ A watch is 8, 9, 10, 11, or 12 check-ins. The default is 10.
 
 ## Shape
 
-Every living seat receives the same bay puzzle and submits in private. Nobody's answer is an input to another seat's puzzle. After the submits lock, the watch opens one board: the true answer, every submission, and a fingerprint for each submission. That parallel check-in replaces the signal loop.
+Every living seat receives the same quiz and submits in private. Nobody's answer is an input to another seat's quiz. After the submits lock, the watch opens one board: the true answer, every submission, and a fingerprint for each submission. That parallel check-in replaces the signal loop.
 
-The puzzles are a calibration chain in fiction (one bay, one reference, three kinds of instrument). The chain is not a serial task. Seats do not pass a token.
+The quiz has three kinds: a quick fact, a number-sense problem, and an odd one out. The kinds are not a serial task. Seats do not pass a token.
 
 ## Roles
 
@@ -19,7 +19,7 @@ Three saboteurs are drawn from the seed, on a stream that does not move the puzz
 - The draw is uniform. Every seat has the same chance (3/8) of being a saboteur, and every trio is equally likely.
 - In solo play you always sit **Helm**. The seed decides whether Helm is crew or a saboteur. The other seven seats are AI.
 - Crew see their own role and nothing else about the cell.
-- Saboteurs see the other two saboteurs, the cell sign, and their own cell plan for the current check-in.
+- Saboteurs see the other two saboteurs, the cell lean, and their own cell plan for the current check-in. When that plan is a near-miss, they also see the label of the near-miss choice. They do not see the true key.
 
 You are told your role at the start. Other roles stay unpublished through the watch. The end summary names every seat's role. An ejection that ends the watch names the reason, which identifies the side that just lost its last seat. An ejection that does not end the watch publishes the seat's name only. The watch continuing is not evidence that the ejected seat was crew: a saboteur can leave while two saboteurs remain.
 
@@ -44,90 +44,134 @@ Ejected seats stay on the roster. They cannot check in, cannot call a vote, and 
 
 ## Streams
 
-Draws use the existing mulberry32 step (`rngStep` and inclusive `intBetween` in `src/game/rng.ts`). Three streams stay independent.
+Draws use the existing mulberry32 step (`rngStep` and inclusive `intBetween` in `src/game/rng.ts`). Four streams stay independent. The first three do not read each other. The item stream does not advance them.
 
-**Roles.** Initial state `(seed ^ 0xa5a5a5a5) >>> 0`. Copy the roster. For `i` in 0, 1, 2, swap index `i` with `intBetween(state, i, 7)`. The saboteur set is those first three seats, displayed in roster order. One more draw, `intBetween(state, 0, 1)`, sets the cell sign: 0 means −1, 1 means +1. This stream does not advance during the watch.
+**Roles.** Initial state `(seed ^ 0xa5a5a5a5) >>> 0`. Copy the roster. For `i` in 0, 1, 2, swap index `i` with `intBetween(state, i, 7)`. The saboteur set is those first three seats, displayed in roster order. One more draw, `intBetween(state, 0, 1)`, sets the cell lean: 0 means off-by-one (`step`), 1 means wrong rule (`trap`). This stream does not advance during the watch.
 
-**Puzzles.** Each check-in reseeds from the seed and the zero-based round index, so a puzzle does not depend on earlier draw counts, ejections, or answers:
+**Puzzles.** Each check-in reseeds from the seed and the zero-based round index, so a puzzle does not depend on earlier answers or ejections:
 
 ```
 mixed = Math.imul((seed ^ 0x0b47c1ec) >>> 0, roundIndex + 1) >>> 0
 state = (mixed + 0x6d2b79f5) >>> 0
 ```
 
+The first draw on that state is the kind. The rest of that state shuffles the options. Which bank item is dealt is the occurrence walk on the item stream, defined under Ground truth. Building round `n` recomputes earlier kind draws from their own reseeds. It does not read submissions.
+
+**Items.** Permutes one kind-by-difficulty cell. `kindIndex` is 0, 1, or 2. `difficultyIndex` is 0 for easy, 1 for medium, 2 for harder. `cellKey` is `kindIndex * 3 + difficultyIndex + 1` (1 through 9).
+
+```
+mixed = Math.imul((seed ^ 0x71e1e000) >>> 0, cellKey) >>> 0
+state = (mixed + 0x85ebca6b) >>> 0
+```
+
 **Check-ins and votes.** AI answer draws start at `(seed ^ 0x0c1ec31a) >>> 0` and advance through the watch. Vote draws start at `(seed ^ 0x707e0001) >>> 0`. Human notes are not on either stream.
 
 ## Ground truth
 
-Each round has one puzzle, chosen by the first puzzle-stream draw: `intBetween(state, 0, 2)`.
+Phase dials, in-band readings, and corrupted glyphs are retired.
+
+Each round has one quiz. Difficulty comes from the zero-based round index, not from a draw:
+
+| `roundIndex % 3` | Difficulty |
+| --- | --- |
+| 0 | easy |
+| 1 | medium |
+| 2 | harder |
+
+The kind is the first puzzle-stream draw, `intBetween(state, 0, 2)`:
 
 | Draw | Kind |
 | --- | --- |
-| 0 | Phase dial |
-| 1 | In-band reading |
-| 2 | Corrupted glyph |
+| 0 | Quick fact |
+| 1 | Number sense |
+| 2 | Odd one out |
 
-The prompt is enough to derive the true answer. The true answer is withheld on your console until the board opens. AI seats solve the same prompt. They do not receive a hidden copy of the truth.
+`roundIndex` is an integer from 0 through 11. A watch of length `R` uses indexes 0 through `R - 1`.
+
+The bank cell is that kind and that difficulty. It holds exactly eight items, ids `kind-difficulty-01` through `kind-difficulty-08`. Sort those ids ascending. Permute them with Fisher-Yates on the item stream: for `i` from 7 down to 1, swap index `i` with `intBetween(state, 0, i)`.
+
+Occurrence is the number of earlier indexes `i < roundIndex` whose `i % 3` equals this round's difficulty and whose kind draw equals this round's kind. The item is `permutation[occurrence]`. Inside a watch of at most 12 rounds, occurrence is 0, 1, 2, or 3, so an item does not repeat.
+
+`generatePuzzle(seed, roundIndex, lean)` takes the lean as an input. The lean selects which authored neighbor is the near key on number and odd cards. It does not change the kind, the item id, or a fact card.
+
+The console shows the prompt and the labeled choices. It hides the true key until the board opens. The card stores the bank's true key, near key, and blatant keys. AI seats read those fields. They do not receive a second copy, and they do not call a model.
 
 A careful seat can finish a check-in quickly. The watch is decided by fingerprints, votes, and integrity.
 
-### Phase dial
+### Quick fact
 
-Twelve detents, 0 through 11. The next puzzle draws are `A` and `B`, each `intBetween(state, 0, 11)`.
+Five choices: one true answer, one curated near decoy, three far choices. Shuffle them on the puzzle stream. For `i` from 4 down to 1, swap index `i` with `intBetween(state, 0, i)`. Label the result A through E. You submit a label.
 
-The check-in phase is `(A + B) mod 12`. You submit a detent.
-
-Distance is the circular gap, `min(|submitted − truth|, 12 − |submitted − truth|)`, an integer from 0 to 6. Detents 0 and 11 are one step apart.
-
-| Distance | Error class |
-| --- | --- |
-| 0 | exact |
-| 1 | near-miss |
-| 2 or more | blatant |
-
-The two near-miss detents are `(truth + 1) mod 12` and `(truth + 11) mod 12`, in that order. Cell sign +1 is the first. Cell sign −1 is the second.
-
-### In-band reading
-
-The next draws are `anchor = intBetween(state, 18, 64)` and `offset = intBetween(state, 0, 7)`.
-
-The band is the inclusive interval `[anchor, anchor + 7]`. Five values, all distinct:
-
-| Role | Value |
-| --- | --- |
-| True reading | `anchor + offset` |
-| Near decoy | `anchor − 2` |
-| Far | `anchor − 16` |
-| Far | `anchor + 20` |
-| Far | `anchor + 34` |
-
-Shuffle those five with a Fisher-Yates from the end: for `i` from 4 down to 1, swap index `i` with `intBetween(state, 0, i)`. After the shuffle, label the positions R1 through R5. You submit a label.
+The order before the shuffle is the true choice, the near decoy, then the three far choices in bank order.
 
 | Pick | Error class | Distance |
 | --- | --- | --- |
-| True reading | exact | 0 |
+| True choice | exact | 0 |
 | Near decoy | near-miss | 1 |
-| Any far reading | blatant | 2 |
+| Any far choice | blatant | 2 |
 
-A reading check-in has one near-miss answer. It has no direction. The cell sign is not expressed on this kind.
+The canonical key is `fact:<label>`. The near list is that one label. The blatant list is the three far labels in order A through E. The lean does not change the decoy. A fact submission has no lean mark.
 
-### Corrupted glyph
+### Number sense
 
-The alphabet, in order, with indexes 0 through 7: `B D F H K P R T`.
+The prompt is one integer expression. The card shows five values: the truth, `truth + 1`, the trap, and two authored fars. Shuffle and label them A through E the same way as a fact (five entries, `i` from 4 down to 1). You submit a label or the option's integer. A label resolves to that option's integer. Any other integer is illegal.
 
-Draw four indexes with `intBetween(state, 0, 7)`. Repeats are allowed. Draw the corrupted cell with `intBetween(state, 0, 3)`. The seal is the sum of the four indexes modulo 8. The card shows the alphabet, the seal, and the four cells, with the corrupted cell blank.
+The trap depends on difficulty. Operands are integers from 0 through 12. The operator characters are `+`, `−` (U+2212), and `×`.
 
-You submit the missing symbol. The unique symbol that restores the seal is the truth.
+| Difficulty | Prompt | Truth | Trap |
+| --- | --- | --- | --- |
+| Easy | Two operands, one operator, no parentheses | That operator | The other operator named by `trapVia` (`add`, `sub`, or `mul`), same operands, same order |
+| Medium | Three operands, two operators, no parentheses, including one `×` and one `+` or `−` | `×` before `+` and `−`; `+` and `−` left to right | Left to right, equal precedence |
+| Harder | Three operands, one parenthesized pair, including one `×` and one `+` or `−` | Parentheses first, then the medium precedence | Delete the parentheses, then the medium precedence |
 
-Distance is the circular gap on the alphabet, an integer from 0 to 4.
+The trap must differ from the truth and from `truth + 1`. The two authored fars differ from each other, from the truth, from `truth + 1`, and from the trap. Each sits at least 3 away from the truth and at least 2 away from both neighbors, and lies in −30 through 200. Truth and trap lie in that range too.
 
-| Distance | Error class |
+The lean picks the near key:
+
+| Lean | Near key | Anti-lean, filed as blatant |
+| --- | --- | --- |
+| Off-by-one | `truth + 1` | Trap |
+| Wrong rule | Trap | `truth + 1` |
+
+The order before the shuffle is the truth, the near value, the anti-lean value, then the two authored fars in bank order.
+
+The other two blatant keys are the authored fars. They have no lean mark.
+
+| Pick | Error class | Distance |
+| --- | --- | --- |
+| Truth | exact | 0 |
+| Near key | near-miss | 1 |
+| Any of the three other values | blatant | 2 |
+
+Distance is the class integer above. The numeric gap is not the distance, so a blatant `truth + 1` is distance 2.
+
+The canonical key is `number:<integer>`. The near list is the one near value. The blatant list is the three other values, ascending.
+
+Lean marks, for suspicion only:
+
+| Submitted value | Mark |
 | --- | --- |
-| 0 | exact |
-| 1 | near-miss |
-| 2 or more | blatant |
+| `truth + 1` | +1 |
+| Trap | −1 |
+| Any other value | No mark |
 
-The two near-miss symbols are the next and previous letters on the ring, listed as +1 then −1. The cell sign selects between them the same way it does on a dial.
+Expression `1 + 2 × 3` deals truth 7, step 8, trap 9, fars 1 and 20. Off-by-one files 8 as the near key and 9, 1, 20 as blatant. Wrong rule files 9 as the near key and 8, 1, 20 as blatant. Submitting 8 marks +1 in both cases.
+
+### Odd one out
+
+Four shown items. One does not belong. One is the almost-misfit the lean selected. Two are clear members of the group. The other authored almost-misfit is omitted.
+
+The order before the shuffle is the outsider, the selected almost-misfit, then the two in-group items in bank order. Shuffle on the puzzle stream with `i` from 3 down to 1. Number the result 1 through 4. You submit an index.
+
+| Pick | Error class | Distance |
+| --- | --- | --- |
+| Outsider | exact | 0 |
+| Almost-misfit | near-miss | 1 |
+| Either in-group item | blatant | 2 |
+
+The canonical key is `odd:<index>`. The near list is that one index. The blatant list is the two in-group indexes, ascending. An odd-one-out submission has no lean mark.
+
+Off-by-one selects the step almost-misfit: a group member a glance can mistake for the outsider. Wrong rule selects the trap almost-misfit: a group member the item's wrong rule would exclude.
 
 ## What you submit
 
@@ -136,10 +180,10 @@ Every living seat submits exactly one legal answer. There is no drop and no part
 A saboteur's answer falls in one of three postures once it is fingerprinted:
 
 - **Honest** — the true answer.
-- **Near-miss** — a near-miss answer. On a dial or a glyph, the cell's own near-misses use the cell sign, so the direction repeats across rounds. A crew slip uses either neighbor.
+- **Near-miss** — the card's one near-miss answer. The cell lean is that answer for the whole watch: the curated decoy on every quick fact, the off-by-one value or the wrong-rule value on every number card, and the matching almost-misfit on every odd-one-out card. A crew slip uses that same key.
 - **Blatant** — any other legal answer.
 
-You are not forced into a posture. If you are a saboteur, the banner names the cell's plan for you this round. Following it keeps the pattern. Breaking it is allowed and shows up on the board.
+You are not forced into a posture. If you are a saboteur, the banner names the cell's plan for you this round. A near-miss plan also names the choice (`choice B`, or `item 2`). Following it keeps the pattern. Breaking it is allowed and shows up on the board.
 
 Ejected seats are absent. Absence is not a submission and has no fingerprint.
 
@@ -150,12 +194,12 @@ When the board opens, each living submission shows the answer and a fingerprint:
 | Field | Meaning |
 | --- | --- |
 | Error class | `exact`, `near-miss`, or `blatant` |
-| Distance | The integer defined by that puzzle kind. Zero only when the class is exact. |
+| Distance | 0, 1, or 2, as that kind defines above. Zero only when the class is exact. |
 | Instrument id | That seat's stable id, INST-1 through INST-8 |
 
-Integrity uses the error class and whether submissions share a canonical answer. It does not add raw distances across kinds. Dial distance and glyph distance are different scales. The class is what travels from round to round.
+Integrity uses the error class and whether submissions share a canonical answer. It does not add raw distances. The class is what travels from round to round.
 
-Canonical answers: a dial detent, a reading label, or a glyph symbol. Two seats cluster only when those keys are equal.
+Canonical answers: a fact label, a number value, or an odd-one-out index. Two seats cluster only when those keys are equal.
 
 ## Integrity
 
@@ -172,7 +216,7 @@ After each check-in, classify the living submissions in this order. `N` is the n
 | 3 | Some near-miss answer was submitted by at least two seats | **−3.5** points (−350) |
 | 4 | Anything else | **−2.0** points (−200) |
 
-Row 1 is an aligned bay. Row 2 is a false consensus. Row 3 is a near-miss cluster: two or more seats on the same near-miss key. Row 4 is a split. Scattered near-misses on different keys are a split. The first matching row wins, so a true majority still rises when a pair of near-misses sits beside it.
+Row 1 is an aligned bay. Row 2 is a false consensus. Row 3 is a near-miss cluster: two or more seats on the same near-miss key. Row 4 is a split. Scattered near-misses on different keys are a split. The first matching row wins, so a true majority still rises when a pair of near-misses sits beside it. Two seats on a blatant anti-lean value are a split, or a false consensus when that value has a strict majority. They are not a near-miss cluster.
 
 Then clamp to the closed range 2.0%–98.0% (200–9800).
 
@@ -256,10 +300,10 @@ A crew seat reads the first draw:
 | First draw | Submit |
 | --- | --- |
 | below 0.82 | true answer |
-| from 0.82 up to but not including 0.97 | a near-miss, uniform on the second draw |
+| from 0.82 up to but not including 0.97 | the near-miss key, on the second draw |
 | 0.97 and above | a blatant answer, uniform on the second draw |
 
-Near-miss and blatant lists are in the order given under each puzzle. The second draw is `intBetween` over that list. Crew near-misses are not biased toward the cell sign. Half of them will match it by chance on a dial or a glyph, because those kinds have two neighbors.
+The near list has one key, so the second draw is `intBetween(state, 0, 0)` and selects it. The blatant list is the order under that kind. Crew near-misses are not a separate lean. The lean has already chosen the card's near key.
 
 ## Saboteur AI
 
@@ -294,11 +338,11 @@ While one saboteur is alive:
 | from 0.72 up to but not including 0.95 | near-miss |
 | 0.95 and above | blatant |
 
-An AI saboteur follows the plan. A planned near-miss uses the cell sign on a dial or a glyph, and uses the single near decoy on a reading. A planned blatant answer is uniform on that seat's second draw, over the blatant list. The first of the two per-seat draws is consumed and ignored for saboteur seats.
+An AI saboteur follows the plan. A planned near-miss submits the card's near key. A planned blatant answer is uniform on that seat's second draw, over the blatant list. The first of the two per-seat draws is consumed and ignored for saboteur seats, and the second draw is consumed and ignored on a near-miss.
 
 Helm, when Helm is a saboteur, sees the same plan and may submit something else. The other saboteurs still follow the plan.
 
-Saboteurs do not have a private chat channel. Shared cell knowledge is the three identities, the sign, and this round's plan. Earlier boards are public to everyone.
+Saboteurs do not have a private chat channel. Shared cell knowledge is the three identities, the lean, and this round's plan. Earlier boards are public to everyone.
 
 ## Crew and saboteur votes
 
@@ -312,11 +356,11 @@ Miss weight for a submission:
 
 A seat's miss mean is the average weight over rounds they submitted. Rounds after ejection are omitted.
 
-Direction exists on dial and glyph submissions only. The sign is the shorter step from the truth to the submitted answer, +1 or −1. When both directions are the same length, the sign is 0. Exact answers and every reading submission contribute no sign.
+A lean mark is recorded for a number-sense submission of `truth + 1` (+1) or of the trap value (−1). Exact numbers, authored fars, quick facts, and odd-one-out submissions contribute no mark. The mark is recorded when the submitted value is that neighbor, including when the fingerprint calls it blatant.
 
-The modal sign is the +1 or −1 with the greater count across all seats' signed misses on the public log. A tie, or a log with no signed misses, means no visible bias.
+The modal mark is the +1 or −1 with the greater count across all seats' marked submissions on the public log. A tie, or a log with no marks, means no visible bias.
 
-A seat's pattern score is the fraction of that seat's own non-zero signs that match the modal sign. No non-zero signs scores 0. No visible bias scores 0 for every seat.
+A seat's pattern score is the fraction of that seat's own marks that match the modal mark. No marks scores 0. No visible bias scores 0 for every seat.
 
 Suspicion is `0.75 * miss mean + 0.25 * pattern score`.
 
@@ -334,4 +378,4 @@ AI votes are not locked to the nominee. A called vote can eject a different seat
 
 ## Replay
 
-The same seed, the same round count, the same Helm submissions, and the same Helm votes produce the same roles, cell sign, puzzles, AI submissions, fingerprints, integrity path, AI calls, and verdict. Notes are ignored. The frame draw, when it happens, is taken as discuss opens. Ballot draws are taken only if ballots are cast. Skipping a vote and holding a vote are different replays.
+The same seed, the same round count, the same Helm submissions, and the same Helm votes produce the same roles, cell lean, quizzes, AI submissions, fingerprints, integrity path, AI calls, and verdict. Notes are ignored. The frame draw, when it happens, is taken as discuss opens. Ballot draws are taken only if ballots are cast. Skipping a vote and holding a vote are different replays.

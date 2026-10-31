@@ -1,5 +1,7 @@
 # Parallel Bay Check-ins Implementation Plan
 
+> **Historical plan.** This plan has been carried out. The client is the bay watch. Puzzle tasks below describe the retired phase dial, in-band reading, and corrupted glyph. Those are not the live check-in. The live check-in is the Everyday quiz trio in `docs/superpowers/specs/2026-10-31-everyday-quiz-trio-design.md`, with cutover slices in `docs/BACKLOG.md`.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Replace the four-seat signal loop with a solo bay watch: Helm plus seven AIs, three saboteurs, parallel check-ins, fingerprints, and an integrity meter.
