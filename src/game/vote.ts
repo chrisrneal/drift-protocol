@@ -1,6 +1,8 @@
 import { RESCUE_FAIL, RESCUE_WIN } from './constants';
 import type { SeatId } from './types';
 
+export { majorityEject } from '../bay/vote';
+
 export type VoteChoice = SeatId | 'skip';
 
 export type VoteBallot = {
@@ -19,26 +21,6 @@ export type WatchVerdict = {
   winner: 'crew' | 'saboteur' | 'draw';
   reason: WinReason;
 };
-
-export function majorityEject(votes: readonly VoteBallot[], living: readonly SeatId[]): SeatId | null {
-  if (living.length === 0) return null;
-  const eligible = new Set(living);
-  const counts = new Map<SeatId, number>();
-  for (const vote of votes) {
-    if (!eligible.has(vote.voter)) continue;
-    if (vote.choice === 'skip' || !eligible.has(vote.choice)) continue;
-    counts.set(vote.choice, (counts.get(vote.choice) ?? 0) + 1);
-  }
-  const needed = Math.floor(living.length / 2) + 1;
-  let chosen: SeatId | null = null;
-  for (const [seat, count] of counts) {
-    if (count >= needed) {
-      if (chosen) return null;
-      chosen = seat;
-    }
-  }
-  return chosen;
-}
 
 export function verdictAfterEject(
   ejectedSeat: SeatId,
