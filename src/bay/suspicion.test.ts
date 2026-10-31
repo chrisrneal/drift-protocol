@@ -4,7 +4,7 @@ import { evaluateNomination, fillBallots } from './nominate';
 import { assembleDial } from './puzzles';
 import { assignCell, soloControllers } from './roles';
 import { missSign, nameTarget, suspicionScores } from './suspicion';
-import { BAY_SEATS, INSTRUMENT, type BaySeatId, type CheckInRecord } from './types';
+import { BAY_SEATS, INSTRUMENT, type BaySeatId, type CheckInRecord, type ReadingPuzzle } from './types';
 
 function dialLog(rounds: Array<Record<BaySeatId, number>>): CheckInRecord[] {
   return rounds.map((detents, roundIndex) => {
@@ -55,7 +55,7 @@ describe('missSign', () => {
       near: ['R1' as const],
       blatant: ['R2' as const, 'R4' as const, 'R5' as const],
     };
-    expect(missSign(reading, { kind: 'reading', label: 'R2' })).toBeNull();
+    expect(missSign(reading as ReadingPuzzle, { kind: 'reading', label: 'R2' })).toBeNull();
   });
 });
 
