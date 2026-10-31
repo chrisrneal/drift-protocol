@@ -120,7 +120,9 @@ export function updateSkeptic(memory: SkepticMemory, emissions: Emission[]): Ske
   const beta = { ...memory.beta };
   const reference = referencePacket(emissions);
   for (const seat of SKEPTIC_PEERS) {
-    const packet = emissions.find((row) => row.seat === seat)?.packet ?? null;
+    const row = emissions.find((item) => item.seat === seat);
+    if (row?.absent) continue;
+    const packet = row?.packet ?? null;
     if (!packet) {
       beta[seat] += SKEPTIC_DROP_BETA;
       continue;

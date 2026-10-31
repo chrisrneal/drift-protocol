@@ -64,6 +64,17 @@ describe('updateSkeptic', () => {
     expect(next.recentRounds).toHaveLength(1);
   });
 
+  it('does not treat an ejected seat as a drop', () => {
+    const next = updateSkeptic(initialSkepticMemory(), [
+      { seat: 'skeptic', packet: consensus },
+      { seat: 'you', packet: consensus },
+      { seat: 'pattern', packet: consensus },
+      { seat: 'explorer', packet: null, absent: true },
+    ]);
+    expect(next.alpha.explorer).toBe(2);
+    expect(next.beta.explorer).toBe(2);
+  });
+
   it('increases beta when a peer emission is far from the skeptic emission', () => {
     const next = updateSkeptic(initialSkepticMemory(), [
       { seat: 'skeptic', packet: consensus },

@@ -164,6 +164,71 @@ input[type='range'] {
   cursor: not-allowed;
 }
 
+.secondary {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 8px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--dim);
+}
+
+button.choice {
+  width: 100%;
+}
+
+.role-banner {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  background: var(--inset);
+  line-height: 1.45;
+}
+
+.role-banner.saboteur {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.ejected {
+  opacity: 0.62;
+}
+
+.vote-list {
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+
+.vote-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid var(--line);
+  padding-top: 8px;
+}
+
+.actions.vote-options,
+.actions.accuse-actions {
+  margin-bottom: 14px;
+}
+
+.actions.accuse-actions {
+  grid-template-columns: 1fr;
+}
+
+.actions.vote-options {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.meter-mark.fail {
+  background: var(--danger);
+  top: 0;
+  bottom: 0;
+}
+
 .steps,
 .roster,
 .seat-log,

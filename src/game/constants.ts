@@ -2,6 +2,17 @@ import type { SeatId } from './types';
 
 export const RESCUE_START = 0.42;
 export const RESCUE_WIN = 0.6;
+/** Saboteur survives the watch only when rescue finishes strictly below this. */
+export const RESCUE_FAIL = 0.5;
+
+/** Share of post-round-1 rolls where a saboteur AI copies the honest crew policy. */
+export const SABOTAGE_HONEST = 0.62;
+/** Rolls at or above this, and outside the honest band, become a drop. The rest are edits. */
+export const SABOTAGE_DROP_AT = 0.9;
+export const SABOTEUR_SELF_VOTE = 0.08;
+export const ACCUSE_SCORE = 0.55;
+export const FRAME_CHANCE = 0.12;
+export const FRAME_SCORE = 0.35;
 export const RESCUE_NEUTRAL = 0.55;
 export const RESCUE_STEP = 0.12;
 export const RESCUE_MIN = 0.02;
