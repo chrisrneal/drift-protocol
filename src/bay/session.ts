@@ -3,6 +3,7 @@ import { applyIntegrity, classifyBoard, meterVerdict } from './integrity';
 import { generatePuzzle } from './puzzles';
 import { assignCell, livingSeats, soloControllers } from './roles';
 import { checkInStreamStart, voteStreamStart } from './streams';
+import { fillAiAnswers } from './answers';
 import { INTEGRITY_START, MAX_ROUNDS, MIN_ROUNDS } from './constants';
 import {
   BAY_SEATS,
@@ -19,7 +20,7 @@ export function createBaySession(config: { rounds: number; seed: number }): BayS
     throw new Error(`Round count must be an integer from ${MIN_ROUNDS} to ${MAX_ROUNDS}.`);
   }
   const seed = config.seed >>> 0;
-  return {
+  return withAi({
     rounds: config.rounds,
     seed,
     roundIndex: 0,
@@ -39,7 +40,51 @@ export function createBaySession(config: { rounds: number; seed: number }): BayS
     voteState: voteStreamStart(seed),
     winner: null,
     winReason: null,
+  });
+}
+
+function withAi(session: BaySession): BaySession {
+  const filled = fillAiAnswers({
+    puzzle: session.puzzle,
+    cell: session.cell,
+    roundIndex: session.roundIndex,
+    ejected: session.ejected,
+    controllers: session.controllers,
+    checkInState: session.checkInState,
+  });
+  return {
+    ...session,
+    prepared: filled.prepared,
+    plan: filled.plan,
+    checkInState: filled.checkInState,
   };
+}
+
+export function submitHumans(
+  session: BaySession,
+  answers: Partial<Record<BaySeatId, BayAnswer>>,
+): BaySession {
+  if (session.phase !== 'check-in') throw new Error('No open check-in.');
+  const living = livingSeats(session.ejected);
+  const merged: Partial<Record<BaySeatId, BayAnswer>> = { ...session.prepared };
+  for (const seat of living) {
+    if (session.controllers[seat] === 'human') {
+      const answer = answers[seat];
+      if (!answer) throw new Error('Every living human seat must submit.');
+      merged[seat] = answer;
+    } else if (answers[seat]) {
+      throw new Error('AI seats submit through the check-in policy.');
+    }
+  }
+  return revealCheckIn(session, merged);
+}
+
+export function resolveUnattended(session: BaySession): BaySession {
+  if (session.phase !== 'check-in') throw new Error('No open check-in.');
+  if (livingSeats(session.ejected).some((seat) => session.controllers[seat] === 'human')) {
+    throw new Error('A living human still has the console.');
+  }
+  return revealCheckIn(session, { ...session.prepared });
 }
 
 export function revealCheckIn(
@@ -108,7 +153,7 @@ export function finishRound(session: BaySession): BaySession {
     };
   }
   const roundIndex = session.roundIndex + 1;
-  return {
+  return withAi({
     ...session,
     phase: 'check-in',
     roundIndex,
@@ -117,7 +162,7 @@ export function finishRound(session: BaySession): BaySession {
     pendingCall: null,
     prepared: {},
     plan: null,
-  };
+  });
 }
 
 export function advance(session: BaySession): BaySession {

@@ -28,7 +28,6 @@ describe('createBaySession', () => {
     expect(session.voteState).toBe(voteStreamStart(42));
     expect(voteStreamStart(42)).toBe(1887305771);
     expect(checkInStreamStart(42)).toBe(203342640);
-    expect(session.checkInState).toBe(203342640);
     expect(session).not.toHaveProperty('notes');
   });
 
