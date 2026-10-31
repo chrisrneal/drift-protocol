@@ -11,7 +11,7 @@ export default defineConfig({
       manifest: {
         name: 'Drift Protocol',
         short_name: 'Drift',
-        description: 'Solo radio watch. Find the saboteur, or survive long enough to sink the rescue.',
+        description: 'Solo bay watch. Find the three saboteurs, or finish the calibration at 70%.',
         theme_color: '#101614',
         background_color: '#101614',
         display: 'standalone',

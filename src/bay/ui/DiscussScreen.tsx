@@ -39,7 +39,7 @@ export function DiscussScreen({ session, notes, onNotes, onAdvance, onAccuse, on
             <span> / {session.rounds}</span>
           </h1>
         </div>
-        <div className="rescue-readout">
+        <div className="integrity-readout">
           <span>Integrity</span>
           <strong>{formatBasisPoints(session.integrity)}</strong>
         </div>

@@ -38,7 +38,7 @@ export function CheckInScreen({ session, onSubmit, onWatch }: CheckInScreenProps
             <span> / {session.rounds}</span>
           </h1>
         </div>
-        <div className="rescue-readout">
+        <div className="integrity-readout">
           <span>Integrity</span>
           <strong>{formatBasisPoints(session.integrity)}</strong>
         </div>
