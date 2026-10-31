@@ -1,9 +1,16 @@
 import { useState } from 'react';
 import { viewFor } from '../roles';
-import { BAY_SEATS, GLYPH_ALPHABET, INSTRUMENT, type BayAnswer, type BaySession, type ReadingLabel } from '../types';
+import {
+  BAY_SEATS,
+  INSTRUMENT,
+  type BayAnswer,
+  type BaySession,
+  type ChoiceLabel,
+  type OddIndex,
+} from '../types';
 import { checkInControls } from './controls';
 import { formatBasisPoints, SEAT_NAME } from './format';
-import { promptFacts } from './prompt';
+import { kindTitle } from './prompt';
 import { RoleBanner } from './RoleBanner';
 
 type CheckInScreenProps = {
@@ -12,20 +19,34 @@ type CheckInScreenProps = {
   onWatch: () => void;
 };
 
+const CHOICES: ChoiceLabel[] = ['A', 'B', 'C', 'D', 'E'];
+
 export function CheckInScreen({ session, onSubmit, onWatch }: CheckInScreenProps) {
   const helmLiving = !session.ejected.includes('helm');
   const controls = checkInControls(helmLiving);
-  const facts = promptFacts(session.puzzle);
-  const view = viewFor('helm', session.cell, session.plan?.postures.helm ?? null);
-  const [detent, setDetent] = useState(0);
-  const [label, setLabel] = useState<ReadingLabel>('R1');
-  const [symbol, setSymbol] = useState<(typeof GLYPH_ALPHABET)[number]>('B');
+  const puzzle = session.puzzle;
+  const view = viewFor('helm', session.cell, session.plan?.postures.helm ?? null, puzzle);
+  const [label, setLabel] = useState<ChoiceLabel>('A');
+  const [odd, setOdd] = useState<OddIndex>(1);
+  const [typed, setTyped] = useState('');
 
   function submit() {
     if (!controls.submit) return;
-    if (session.puzzle.kind === 'dial') onSubmit({ kind: 'dial', detent });
-    else if (session.puzzle.kind === 'reading') onSubmit({ kind: 'reading', label });
-    else onSubmit({ kind: 'glyph', symbol });
+    if (puzzle.kind === 'fact') onSubmit({ kind: 'fact', label });
+    else if (puzzle.kind === 'number') {
+      const option = puzzle.options.find((entry) => entry.label === label);
+      if (!option) return;
+      onSubmit({ kind: 'number', value: option.value });
+    } else onSubmit({ kind: 'odd', index: odd });
+  }
+
+  function applyTyped(raw: string) {
+    setTyped(raw);
+    if (puzzle.kind !== 'number') return;
+    if (!/^-?\d+$/.test(raw.trim())) return;
+    const value = Number(raw.trim());
+    const match = puzzle.options.find((entry) => entry.value === value);
+    if (match) setLabel(match.label);
   }
 
   return (
@@ -75,40 +96,41 @@ export function CheckInScreen({ session, onSubmit, onWatch }: CheckInScreenProps
         </ul>
       </section>
       <section className="panel" aria-labelledby="prompt">
-        <h2 id="prompt">Check-in</h2>
-        <ul className="roster">
-          {facts.lines.map((line) => (
-            <li key={line}>
-              <strong>{line}</strong>
-            </li>
-          ))}
-        </ul>
-        {controls.submit && session.puzzle.kind === 'dial' ? (
-          <div className="actions" role="radiogroup" aria-label="Detent">
-            {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((value) => (
-              <label key={value} className={detent === value ? 'choice selected' : 'choice'}>
-                <input type="radio" name="detent" checked={detent === value} onChange={() => setDetent(value)} />
-                {value}
-              </label>
-            ))}
+        <h2 id="prompt">{kindTitle(puzzle.kind)}</h2>
+        <p className="prompt">{puzzle.prompt}</p>
+        {controls.submit && (puzzle.kind === 'fact' || puzzle.kind === 'number') ? (
+          <div className="quiz-options" role="radiogroup" aria-label="Answer">
+            {CHOICES.map((value) => {
+              const option = puzzle.options.find((entry) => entry.label === value);
+              const text = option && 'text' in option ? option.text : option && 'value' in option ? option.value : value;
+              return (
+                <label key={value} className={label === value ? 'choice quiz selected' : 'choice quiz'}>
+                  <input type="radio" name="answer" checked={label === value} onChange={() => setLabel(value)} />
+                  <strong>{value}</strong>
+                  <span>{text}</span>
+                </label>
+              );
+            })}
           </div>
         ) : null}
-        {controls.submit && session.puzzle.kind === 'reading' ? (
-          <div className="actions" role="radiogroup" aria-label="Reading">
-            {(['R1', 'R2', 'R3', 'R4', 'R5'] as const).map((value) => (
-              <label key={value} className={label === value ? 'choice selected' : 'choice'}>
-                <input type="radio" name="reading" checked={label === value} onChange={() => setLabel(value)} />
-                {value}
-              </label>
-            ))}
-          </div>
+        {controls.submit && puzzle.kind === 'number' ? (
+          <label className="field number-entry">
+            <span>Or type the number</span>
+            <input inputMode="numeric" value={typed} onChange={(event) => applyTyped(event.target.value)} />
+          </label>
         ) : null}
-        {controls.submit && session.puzzle.kind === 'glyph' ? (
-          <div className="actions" role="radiogroup" aria-label="Symbol">
-            {GLYPH_ALPHABET.map((value) => (
-              <label key={value} className={symbol === value ? 'choice selected' : 'choice'}>
-                <input type="radio" name="glyph" checked={symbol === value} onChange={() => setSymbol(value)} />
-                {value}
+        {controls.submit && puzzle.kind === 'odd' ? (
+          <div className="quiz-options" role="radiogroup" aria-label="Answer">
+            {puzzle.options.map((option) => (
+              <label key={option.index} className={odd === option.index ? 'choice quiz selected' : 'choice quiz'}>
+                <input
+                  type="radio"
+                  name="answer"
+                  checked={odd === option.index}
+                  onChange={() => setOdd(option.index)}
+                />
+                <strong>{option.index}</strong>
+                <span>{option.text}</span>
               </label>
             ))}
           </div>

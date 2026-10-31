@@ -1,4 +1,4 @@
-import { fingerprint } from './fingerprint';
+import { resolveAnswer } from './fingerprint';
 import {
   MISS_BLATANT,
   MISS_EXACT,
@@ -6,31 +6,15 @@ import {
   SUSPICION_MISS_WEIGHT,
   SUSPICION_PATTERN_WEIGHT,
 } from './constants';
-import { GLYPH_ALPHABET, BAY_SEATS, type BayAnswer, type BaySeatId, type CheckInRecord, type Puzzle, type Role } from './types';
+import { BAY_SEATS, type BayAnswer, type BaySeatId, type CheckInRecord, type Puzzle, type Role } from './types';
 
-function indexOf(puzzle: Puzzle, answer: BayAnswer): { truth: number; submitted: number; size: number } | null {
-  if (puzzle.kind === 'dial' && answer.kind === 'dial') {
-    return { truth: puzzle.truth, submitted: answer.detent, size: 12 };
-  }
-  if (puzzle.kind === 'glyph' && answer.kind === 'glyph') {
-    return {
-      truth: GLYPH_ALPHABET.indexOf(puzzle.truth),
-      submitted: GLYPH_ALPHABET.indexOf(answer.symbol),
-      size: 8,
-    };
-  }
+export function leanMark(puzzle: Puzzle, answer: BayAnswer): 1 | -1 | null {
+  if (puzzle.kind !== 'number' || answer.kind !== 'number') return null;
+  const resolved = resolveAnswer(puzzle, answer);
+  if (resolved.kind !== 'number' || !('value' in resolved)) return null;
+  if (resolved.value === puzzle.step) return 1;
+  if (resolved.value === puzzle.trap) return -1;
   return null;
-}
-
-export function missSign(puzzle: Puzzle, answer: BayAnswer): 1 | -1 | 0 | null {
-  if (answer.kind !== puzzle.kind) return null;
-  if (fingerprint(puzzle, answer, 'INST-1').errorClass === 'exact') return null;
-  const indexes = indexOf(puzzle, answer);
-  if (!indexes) return null;
-  const forward = (indexes.submitted - indexes.truth + indexes.size) % indexes.size;
-  const back = (indexes.truth - indexes.submitted + indexes.size) % indexes.size;
-  if (forward === back) return 0;
-  return forward < back ? 1 : -1;
 }
 
 export function suspicionScores(log: readonly CheckInRecord[]): Record<BaySeatId, number> {
@@ -51,7 +35,7 @@ export function suspicionScores(log: readonly CheckInRecord[]): Record<BaySeatId
             ? MISS_NEAR
             : MISS_BLATANT;
       weights[row.seat].push(weight);
-      const sign = missSign(record.puzzle, row.answer);
+      const sign = leanMark(record.puzzle, row.answer);
       if (sign === 1) {
         signs[row.seat].push(1);
         modal.plus += 1;

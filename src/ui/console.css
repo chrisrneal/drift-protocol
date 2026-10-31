@@ -412,6 +412,38 @@ button.choice {
   color: var(--amber);
 }
 
+.prompt {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.4;
+}
+
+.quiz-options {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.choice.quiz {
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  text-align: left;
+  text-transform: none;
+  letter-spacing: 0;
+  font-family: inherit;
+  line-height: 1.35;
+}
+
+.choice.quiz strong {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  letter-spacing: 0.04em;
+}
+
+.number-entry {
+  margin-top: 12px;
+}
+
 .edit-box {
   margin-top: 12px;
   padding-top: 4px;

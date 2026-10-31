@@ -21,14 +21,15 @@ export function createBaySession(config: { rounds: number; seed: number }): BayS
     throw new Error(`Round count must be an integer from ${MIN_ROUNDS} to ${MAX_ROUNDS}.`);
   }
   const seed = config.seed >>> 0;
+  const cell = assignCell(seed);
   return withAi({
     rounds: config.rounds,
     seed,
     roundIndex: 0,
     integrity: INTEGRITY_START,
     phase: 'check-in',
-    puzzle: generatePuzzle(seed, 0),
-    cell: assignCell(seed),
+    puzzle: generatePuzzle(seed, 0, cell.lean),
+    cell,
     controllers: soloControllers(),
     ejected: [],
     log: [],
@@ -99,10 +100,10 @@ export function revealCheckIn(
     if (living.includes(seat) && !answers[seat]) throw new Error('Every living seat must submit.');
   }
   const truth = truthAnswer(session.puzzle);
-  const keys = living.map((seat) => canonicalKey(answers[seat] as BayAnswer));
-  const classified = classifyBoard({
-    truthKey: canonicalKey(truth),
-    nearKeys: nearAnswers(session.puzzle).map((answer) => canonicalKey(answer)),
+    const keys = living.map((seat) => canonicalKey(session.puzzle, answers[seat] as BayAnswer));
+    const classified = classifyBoard({
+      truthKey: canonicalKey(session.puzzle, truth),
+      nearKeys: nearAnswers(session.puzzle).map((answer) => canonicalKey(session.puzzle, answer)),
     keys,
   });
   const integrityAfter = applyIntegrity(session.integrity, classified.delta);
@@ -168,7 +169,7 @@ export function finishRound(session: BaySession): BaySession {
     ...session,
     phase: 'check-in',
     roundIndex,
-    puzzle: generatePuzzle(session.seed, roundIndex),
+    puzzle: generatePuzzle(session.seed, roundIndex, session.cell.lean),
     meeting: null,
     pendingCall: null,
     prepared: {},

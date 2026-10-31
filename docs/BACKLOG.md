@@ -4,7 +4,7 @@ Quiz cutover for the [Everyday quiz trio](superpowers/specs/2026-10-31-everyday-
 
 The Parallel Bay Check-ins social layer is the client. `src/main.tsx` mounts `BayApp`. Seats, integrity, discuss, accusations, and the AI plan tables stay. The phase dial, the in-band reading, and the corrupted glyph are superseded. Do not build that family again.
 
-This list is the remaining work. It is not started. Land the slices in order. Keep `npm test` and `npm run build` green after each one. Put the bank in `src/bay/bank/`. Keep the session modules in `src/bay/`.
+This list is the cutover record. The slices have landed. Put the bank in `src/bay/bank/`. Keep the session modules in `src/bay/`.
 
 Out of these slices: networked multiplayer, voice, accounts, and language-model agents. Questions are static data in the repo.
 

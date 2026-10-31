@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { truthAnswer } from '../fingerprint';
 import { viewFor } from '../roles';
 import { BAY_SEATS, type BaySeatId, type BaySession } from '../types';
 import { clampNotes } from '../notes';
 import { discussControls } from './controls';
 import { formatBasisPoints, formatDelta, INSTRUMENT, SEAT_NAME } from './format';
+import { formatSubmitted, formatTruth } from './prompt';
 import { RoleBanner } from './RoleBanner';
 
 type DiscussScreenProps = {
@@ -24,10 +24,10 @@ export function DiscussScreen({ session, notes, onNotes, onAdvance, onAccuse, on
     pending: session.pendingCall !== null,
   });
   const record = session.log[session.log.length - 1];
-  const view = viewFor('helm', session.cell, session.plan?.postures.helm ?? null);
+  const view = viewFor('helm', session.cell, session.plan?.postures.helm ?? null, record?.puzzle);
   const livingTargets = BAY_SEATS.filter((seat) => seat !== 'helm' && !session.ejected.includes(seat));
   const [target, setTarget] = useState<BaySeatId>(livingTargets[0] ?? 'sonar');
-  const truth = record ? truthAnswer(record.puzzle) : null;
+  const truth = record ? formatTruth(record.puzzle) : null;
 
   return (
     <main className="shell">
@@ -49,8 +49,7 @@ export function DiscussScreen({ session, notes, onNotes, onAdvance, onAccuse, on
         <section className="panel board" aria-labelledby="board">
           <h2 id="board">Board</h2>
           <p>
-            Truth {truth.kind === 'dial' ? truth.detent : truth.kind === 'reading' ? truth.label : truth.symbol}. Delta{' '}
-            {formatDelta(record.delta)}.
+            Truth {truth}. Delta {formatDelta(record.delta)}.
           </p>
           <ul className="roster">
             {record.rows.map((row) => (
@@ -60,12 +59,8 @@ export function DiscussScreen({ session, notes, onNotes, onAdvance, onAccuse, on
                   <span>Absent</span>
                 ) : (
                   <span className="fingerprint">
-                    {row.answer.kind === 'dial'
-                      ? row.answer.detent
-                      : row.answer.kind === 'reading'
-                        ? row.answer.label
-                        : row.answer.symbol}{' '}
-                    · {row.fingerprint.errorClass} · distance {row.fingerprint.distance} · {row.fingerprint.instrumentId}
+                    {formatSubmitted(record.puzzle, row.answer)} · {row.fingerprint.errorClass} · distance{' '}
+                    {row.fingerprint.distance} · {row.fingerprint.instrumentId}
                   </span>
                 )}
               </li>

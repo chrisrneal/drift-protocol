@@ -1,33 +1,33 @@
 import { describe, expect, it } from 'vitest';
 import { applyIntegrity, classifyBoard, formatBasisPoints, formatDelta, meterVerdict } from './integrity';
 
-const truth = 'dial:10';
-const near = ['dial:11', 'dial:9'];
+const truth = 'fact:A';
+const near = ['fact:B'];
 
 describe('classifyBoard', () => {
   it('follows the worked path from 42.0% and prefers a true majority over a near pair', () => {
     let integrity = 4200;
     const steps: Array<{ keys: string[]; row: string; delta: number; after: number }> = [
       {
-        keys: ['dial:10', 'dial:10', 'dial:10', 'dial:10', 'dial:10', 'dial:11', 'dial:11', 'dial:11'],
+        keys: ['fact:A', 'fact:A', 'fact:A', 'fact:A', 'fact:A', 'fact:B', 'fact:B', 'fact:B'],
         row: 'aligned',
         delta: 400,
         after: 4600,
       },
       {
-        keys: ['dial:10', 'dial:10', 'dial:10', 'dial:10', 'dial:11', 'dial:11', 'dial:11', 'dial:4'],
+        keys: ['fact:A', 'fact:A', 'fact:A', 'fact:A', 'fact:B', 'fact:B', 'fact:B', 'fact:C'],
         row: 'near-miss-cluster',
         delta: -350,
         after: 4250,
       },
       {
-        keys: ['dial:4', 'dial:4', 'dial:4', 'dial:4', 'dial:4', 'dial:4', 'dial:10', 'dial:10'],
+        keys: ['fact:C', 'fact:C', 'fact:C', 'fact:C', 'fact:C', 'fact:C', 'fact:A', 'fact:A'],
         row: 'false-consensus',
         delta: -450,
         after: 3800,
       },
       {
-        keys: ['dial:10', 'dial:10', 'dial:0', 'dial:1', 'dial:2', 'dial:3', 'dial:5', 'dial:6'],
+        keys: ['fact:A', 'fact:A', 'fact:C', 'fact:D', 'fact:E', 'fact:F', 'fact:G', 'fact:H'],
         row: 'split',
         delta: -200,
         after: 3600,
@@ -49,11 +49,11 @@ describe('classifyBoard', () => {
     expect(formatDelta(-200)).toBe('-2.0');
   });
 
-  it('treats two different near keys as a split', () => {
+  it('treats two seats on a blatant key as a split', () => {
     const classified = classifyBoard({
       truthKey: truth,
       nearKeys: near,
-      keys: ['dial:10', 'dial:10', 'dial:11', 'dial:9', 'dial:0', 'dial:1', 'dial:2', 'dial:3'],
+      keys: ['fact:A', 'fact:A', 'fact:C', 'fact:C', 'fact:D', 'fact:E', 'fact:B', 'fact:D'],
     });
     expect(classified).toEqual({ row: 'split', delta: -200 });
   });
