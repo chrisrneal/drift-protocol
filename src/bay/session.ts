@@ -180,3 +180,22 @@ export function advance(session: BaySession): BaySession {
   if (session.phase !== 'discuss') throw new Error('Advance from discuss.');
   return finishRound(session);
 }
+
+export function replayKey(session: BaySession) {
+  return {
+    seed: session.seed,
+    rounds: session.rounds,
+    cell: session.cell,
+    controllers: session.controllers,
+    integrity: session.integrity,
+    ejected: session.ejected,
+    winner: session.winner,
+    winReason: session.winReason,
+    log: session.log,
+    meetings: session.meetings,
+    checkInState: session.checkInState,
+    voteState: session.voteState,
+    roundIndex: session.roundIndex,
+    phase: session.phase,
+  };
+}
