@@ -1,55 +1,49 @@
 # Bay check-ins backlog
 
-Implementation slices for [Parallel Bay Check-ins](superpowers/specs/2026-10-31-bay-checkins-design.md). Normative behavior is [game-rules.md](game-rules.md).
+Quiz cutover for the [Everyday quiz trio](superpowers/specs/2026-10-31-everyday-quiz-trio-design.md). Normative behavior is [game-rules.md](game-rules.md).
 
-This list is the work. It is not started. Land the slices in order. Keep `npm test` and `npm run build` green after each one. Put new modules in `src/bay/` and leave the legacy session in place until the last slice. `SEATS` in `src/game/types.ts` is four packet emitters; widening it early will break the running watch.
+The Parallel Bay Check-ins social layer is the client. `src/main.tsx` mounts `BayApp`. Seats, integrity, discuss, accusations, and the AI plan tables stay. The phase dial, the in-band reading, and the corrupted glyph are superseded. Do not build that family again.
 
-Out of these slices: networked multiplayer, voice, accounts, and language-model agents.
+This list is the remaining work. It is not started. Land the slices in order. Keep `npm test` and `npm run build` green after each one. Put the bank in `src/bay/bank/`. Keep the session modules in `src/bay/`.
 
-## 1. Seats and roles
+Out of these slices: networked multiplayer, voice, accounts, and language-model agents. Questions are static data in the repo.
 
-Eight seats in roster order, with instrument ids INST-1 through INST-8. The role stream assigns exactly three saboteurs and one cell sign, using the constants in the rules. Every trio is reachable and the draw is uniform. Solo play marks Helm as the human controller and the other seven as AI.
+## 1. Question bank
 
-A crew view returns that seat's role only. A saboteur view returns the other two saboteur ids and the sign. The same seed replays the same trio and the same sign. Tests cover the uniform counts, both visibilities, and replay. The legacy app still runs.
+Add `FACT_BANK`, `NUMBER_BANK`, and `ODD_BANK`. Exactly eight items in each kind-by-difficulty cell, ids `kind-difficulty-01` through `08`. Each cell has at least two `school`, two `everyday`, and two `trivia` items.
 
-## 2. Puzzle engine
+A checker covers the rules in game-rules: unique ids, distinct choices, fact prompts ending in `?`, the number grammar and the trap inequalities, five distinct odd strings, and notes present on odd items. The checker recomputes number truth and trap from the prompt. The game will deal the stored keys.
 
-Pure puzzles from seed and round index, on the puzzle reseed in the rules. All three kinds: phase dial, in-band reading, corrupted glyph. Fingerprints report error class, distance, and instrument id. Canonical keys group equal answers.
+No generator and no UI in this slice. Tests fail the build if a ninth id appears or an eighth id is missing.
 
-Tests lock the boundaries: dial wrap between 0 and 11, glyph ring neighbors, the reading near decoy versus a far reading, and two rounds of the same seed staying put when answers change. No UI yet.
+## 2. Quiz generator and fingerprints
 
-## 3. Integrity
+Replace the calibration generator. `generatePuzzle(seed, roundIndex, lean)` follows the reseed, the kind draw, `roundIndex % 3`, the item permutation, the lean, and the Fisher-Yates shuffle in the rules.
 
-Basis-point meter. Start at 4200. Deltas +400, −450, −350, and −200 in the priority order in the rules. Clamp to 200–9800. End-of-watch bands: at or above 7000 is crew, strictly below 5500 with a saboteur still aboard is saboteurs, and the rest of an open watch is stalemate.
+Fingerprints report error class, distance 0, 1, or 2, and instrument id. Canonical keys are `fact:<label>`, `number:<integer>`, and `odd:<index>`. A number label resolves to its integer before the key is formed. An integer off the card is illegal.
 
-Tests cover each row, the priority (a true majority still rises when a near-miss pair is present), the clamp, and a meter that crosses 70% without ending the watch by itself.
+Tests lock a 12-round watch with no repeated bank id, a fact card that ignores the lean, a number card whose near key flips with the lean while the item id stays put, an odd card that swaps which almost-misfit is shown, and round 5 staying put when it is generated alone. The expression `1 + 2 × 3` classifies 8 and 9 as in the rules for both leans. Distance is the class integer, including when `truth + 1` is blatant.
 
-## 4. Discuss phase
+## 3. Cell lean, plans, and suspicion
 
-Session phases are check-in, discuss, optional meeting, then the next check-in or done. Locking submits reveals the board, applies integrity once, and enters discuss. Round 1 discuss has the board and the notes strip, does not run the AI call, and rejects ballots. From round 2, opening discuss may attach a pending AI nomination, and ballots open only when Helm takes that nomination or names someone. Advancing without ballots spends the round's accusation.
+The last role-stream draw stores `step` or `trap` instead of a ±1 sign. Saboteur visibility returns the lean. A near-miss plan also returns the choice label (`choice B` or `item 2`) and does not return the true key.
 
-Notes are a client scratchpad of at most 2000 characters. They are absent from the replay streams. The UI for this slice can be the new screens in `src/bay` without replacing the legacy start path yet. Tests assert the phase gate and a single integrity update per check-in.
+Crew AI and saboteur AI use the one-element near list and the blatant order in the rules. Draw consumption is unchanged: one plan draw per round, then two draws per living AI seat, both consumed on an honest answer and on a saboteur near-miss.
 
-## 5. Accusations for eight seats and three saboteurs
+Suspicion records +1 for a submitted `truth + 1` and −1 for a submitted trap, including a blatant anti-lean value. Facts, odd-one-out submissions, exact numbers, and authored fars add no mark. The 0.75 / 0.25 mix, the 0.40 call, the 0.12 frame, and the 0.08 self-vote stay.
 
-Wire meetings to the bay session. Majority table from 8 living seats down to 2. One meeting per round. Ejected seats stay listed and cannot check in or vote.
+Tests cover both leans on one seed, a partner a saboteur AI never names, and a scripted number log whose modal mark matches the anti-lean submissions.
 
-Ejecting the last saboteur is an immediate crew win. Ejecting the last crew seat is an immediate saboteur win. Ejecting anyone while both sides remain continues the watch and does not include a role in the result. Tests cover those three ejection outcomes and a failed majority.
+## 4. Check-in UI
 
-## 6. Seven AI seats
+The check-in screen shows the prompt and legal radios: A–E for a fact or a number, 1–4 for odd one out. A number field selects the option whose integer was typed. The prompt omits the bank id, the keys, the lean, and the author notes.
 
-Crew AIs use the shared 0.82 / 0.15 / 0.03 table. Saboteur AIs follow the cell plan, including the 0.03 all-near round while three are alive, and they apply the cell sign on dial and glyph near-misses. Draw consumption matches the rules: one plan draw per round, then two draws per living AI seat, both consumed on honest rounds.
+The saboteur banner says off-by-one or wrong rule, plus the plan, plus the near-miss choice when that is the plan. The start screen describes the quiz and the lean. The `index.html` description matches that quiz. Calibration wording and the cell-sign control leave the UI.
 
-AI check-ins do not read Helm's current submission. Accusation policy uses the suspicion mix, protects partners, frames at 0.12, and self-votes at 0.08. Helm is never the auto-caller. Tests lock a scripted seed's plan, a shared sign across the cell, and a partner who is never named by a saboteur AI.
+Tests cover the prompt lines for one card of each kind, and a banner that names `choice B` only for a near-miss plan.
 
-## 7. Full-watch tests
+## 5. Full-watch replay
 
 Play complete watches through the bay session: crew integrity window, saboteur integrity hold, stalemate, all three saboteurs ejected, all crew ejected. Replay the same seed and the same Helm inputs and require the same boards and the same verdict. Skipping a vote and calling a vote are different replays.
 
-The legacy signal-loop tests still pass in this slice.
-
-## 8. Remove the signal loop
-
-Point the client at the bay session. Delete the packet task, trust sliders, rescue math, lexicon noise, Skeptic, Pattern, Explorer, and the single-saboteur sabotage policy. Update the start screen, role banner, and summary to the bay rules. Update the README so it describes the client that actually runs, and drop the "implementation pending" line.
-
-`npm test` and `npm run build` pass on the bay watch alone.
+`npm test` and `npm run build` pass on the quiz watch.
