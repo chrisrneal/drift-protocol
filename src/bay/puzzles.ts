@@ -1,6 +1,14 @@
 import { intBetween } from '../game/rng';
 import { PUZZLE_STREAM_ADD, PUZZLE_STREAM_MASK } from './constants';
-import { type DialPuzzle, type Puzzle, type ReadingLabel, type ReadingPuzzle } from './types';
+import {
+  GLYPH_ALPHABET,
+  type DialPuzzle,
+  type GlyphPuzzle,
+  type GlyphSymbol,
+  type Puzzle,
+  type ReadingLabel,
+  type ReadingPuzzle,
+} from './types';
 
 const READING_LABELS: ReadingLabel[] = ['R1', 'R2', 'R3', 'R4', 'R5'];
 
@@ -75,5 +83,29 @@ export function generatePuzzle(seed: number, roundIndex: number): Puzzle {
     }
     return assembleReading(anchor.value, offset.value, values);
   }
-  throw new Error('Unknown puzzle kind.');
+  const indexes: number[] = [];
+  for (let cell = 0; cell < 4; cell += 1) {
+    const drawn = intBetween(state, 0, 7);
+    state = drawn.state;
+    indexes.push(drawn.value);
+  }
+  const blank = intBetween(state, 0, 3);
+  if (blank.value !== 0 && blank.value !== 1 && blank.value !== 2 && blank.value !== 3) {
+    throw new Error('Glyph blank is out of range.');
+  }
+  return assembleGlyph([indexes[0], indexes[1], indexes[2], indexes[3]], blank.value);
+}
+
+function assembleGlyph(indexes: [number, number, number, number], blank: 0 | 1 | 2 | 3): GlyphPuzzle {
+  const truthIndex = indexes[blank];
+  const truth = GLYPH_ALPHABET[truthIndex];
+  const near: [GlyphSymbol, GlyphSymbol] = [
+    GLYPH_ALPHABET[(truthIndex + 1) % 8],
+    GLYPH_ALPHABET[(truthIndex + 7) % 8],
+  ];
+  const skip = new Set<GlyphSymbol>([truth, near[0], near[1]]);
+  const blatant = GLYPH_ALPHABET.filter((symbol) => !skip.has(symbol));
+  const shown = indexes.map((index, cell) => (cell === blank ? null : GLYPH_ALPHABET[index])) as GlyphPuzzle['shown'];
+  const seal = indexes.reduce((sum, index) => sum + index, 0) % 8;
+  return { kind: 'glyph', indexes, blank, seal, shown, truth, near, blatant };
 }

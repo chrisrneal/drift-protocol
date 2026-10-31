@@ -23,7 +23,7 @@ describe('phase dial', () => {
   });
 
   it('repeats a round from the seed and the round index alone', () => {
-    expect(generatePuzzle(0, 0)).toEqual(generatePuzzle(0, 0));
+    expect(generatePuzzle(9, 4)).toEqual(generatePuzzle(9, 4));
   });
 });
 
@@ -44,6 +44,39 @@ describe('in-band reading', () => {
       truth: 'R3',
       near: ['R1'],
       blatant: ['R2', 'R4', 'R5'],
+    });
+  });
+});
+
+describe('corrupted glyph', () => {
+  it('draws the locked glyphs, including both ring ends', () => {
+    expect(generatePuzzle(42, 2)).toMatchObject({
+      kind: 'glyph',
+      indexes: [1, 6, 4, 5],
+      blank: 3,
+      seal: 0,
+      truth: 'P',
+      shown: ['D', 'R', 'K', null],
+      near: ['R', 'K'],
+      blatant: ['B', 'D', 'F', 'H', 'T'],
+    });
+    expect(generatePuzzle(1, 3)).toMatchObject({
+      kind: 'glyph',
+      indexes: [6, 3, 7, 0],
+      blank: 2,
+      seal: 0,
+      truth: 'T',
+      shown: ['R', 'H', null, 'B'],
+      near: ['B', 'R'],
+    });
+    expect(generatePuzzle(2, 4)).toMatchObject({
+      kind: 'glyph',
+      indexes: [3, 3, 3, 0],
+      blank: 3,
+      seal: 1,
+      truth: 'B',
+      shown: ['H', 'H', 'H', null],
+      near: ['D', 'T'],
     });
   });
 });
