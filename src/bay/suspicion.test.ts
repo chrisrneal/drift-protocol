@@ -141,7 +141,7 @@ describe('suspicion', () => {
 });
 
 describe('evaluateNomination', () => {
-  it('does not draw on round 1', () => {
+  it('draws the frame roll on round 1 when nobody calls', () => {
     const cell = assignCell(42);
     const result = evaluateNomination({
       roundIndex: 0,
@@ -151,7 +151,7 @@ describe('evaluateNomination', () => {
       ejected: [],
       log: [],
     });
-    expect(result).toEqual({ pendingCall: null, voteState: 1887305771 });
+    expect(result.voteState).not.toBe(1887305771);
   });
 
   it('lets the earliest crew AI call without consuming the frame draw', () => {

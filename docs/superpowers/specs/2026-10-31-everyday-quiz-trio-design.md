@@ -27,7 +27,7 @@ The Parallel Bay Check-ins social layer is unchanged. Full text: `docs/game-rule
 - A watch is 8, 9, 10, 11, or 12 check-ins. The default is 10.
 - Fingerprints stay `exact`, `near-miss`, or `blatant`, plus that kind's distance, plus the seat's instrument id.
 - Integrity starts at 42.0% (4200 basis points). Deltas are +4.0 aligned, −4.5 false consensus, −3.5 same-key near-miss cluster, and −2.0 split, in that priority. Clamp 2.0%–98.0%. Meter wins only at the round limit: crew at or above 70%, saboteurs strictly below 55% with a saboteur still aboard, otherwise stalemate while a saboteur remains.
-- Discuss before any ballot. Notes are a local 2000-character scratchpad. Round 1 has no call. One accusation per later round. Majority table from 8 living seats (5 votes) down to 2 (2 votes).
+- Discuss before any ballot. Notes are a local 2000-character scratchpad. One accusation per round, round 1 included. Majority table from 8 living seats (5 votes) down to 2 (2 votes).
 - Crew AI stays 0.82 exact, 0.15 near-miss, 0.03 blatant. The cell-plan tables, the suspicion mix `0.75 * miss mean + 0.25 * pattern score`, the 0.40 call, the 0.12 frame, and the 0.08 self-vote stay. Miss weights stay 0, 0.55, and 1.
 - Role, puzzle, check-in, and vote streams keep their masks. The puzzle reseed is unchanged:
 

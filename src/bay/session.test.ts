@@ -3,6 +3,7 @@ import { truthAnswer } from './fingerprint';
 import { generatePuzzle } from './puzzles';
 import { assignCell, livingSeats } from './roles';
 import { advance, createBaySession, revealCheckIn } from './session';
+import { rngStep } from '../game/rng';
 import { checkInStreamStart, voteStreamStart } from './streams';
 import { BAY_SEATS, type BayAnswer, type BaySeatId, type BaySession } from './types';
 
@@ -26,6 +27,7 @@ describe('createBaySession', () => {
     expect(session.log).toEqual([]);
     expect(session.winner).toBeNull();
     expect(session.voteState).toBe(voteStreamStart(42));
+    expect(session.pendingCall).toBeNull();
     expect(voteStreamStart(42)).toBe(1887305771);
     expect(checkInStreamStart(42)).toBe(203342640);
     expect(session).not.toHaveProperty('notes');
@@ -53,7 +55,8 @@ describe('reveal and discuss', () => {
     expect(revealed.log[0].rows.every((row) => row.absent === false && row.fingerprint.errorClass === 'exact')).toBe(
       true,
     );
-    expect(revealed.voteState).toBe(opened.voteState);
+    // Round 1 discuss runs the auto-call once: the frame draw is consumed when no crew AI calls.
+    expect(revealed.voteState).toBe(rngStep(opened.voteState).state);
     expect(revealed.pendingCall).toBeNull();
     expect(revealed.winner).toBeNull();
     expect(() => revealCheckIn(revealed, truthMap(opened))).toThrow(/No open check-in/);
@@ -74,7 +77,8 @@ describe('reveal and discuss', () => {
     expect(session.integrity).toBe(4600);
     expect(session.puzzle).toEqual(generatePuzzle(42, 1, assignCell(42).lean));
     expect(session.meetings).toEqual([]);
-    expect(session.voteState).toBe(voteStreamStart(42));
+    expect(session.voteState).toBe(rngStep(voteStreamStart(42)).state);
+    expect(session.pendingCall).toBeNull();
   });
 
   it('can sit at or above 70% without ending the watch', () => {

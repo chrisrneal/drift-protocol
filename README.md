@@ -29,7 +29,7 @@ npm run preview
 2. Each round, every living seat gets the same quiz. Rounds cycle easy, medium, harder.
 3. Submit in private. A fact or a number is a label A–E. A number also accepts the option's integer. Odd one out is an index 1–4.
 4. The board opens: every submission, its error class, its distance from the true answer, and that seat's instrument id. Integrity moves.
-5. Discuss with the board up. Notes stay on your console. From round 2, an AI may already have named someone; ballots stay closed until you take that name, name someone yourself, or move on. Round 1 has no vote.
+5. Discuss with the board up. Notes stay on your console. An AI may already have named someone; ballots stay closed until you take that name, name someone yourself, or move on.
 6. One accusation per round. A majority of the living seats ejects. Ejected seats stay listed and cannot check in or vote. A vote that continues does not announce the ejected seat's role.
 7. Eject all three saboteurs and crew wins on the spot. Eject every crew seat and the saboteurs win on the spot. Otherwise play the remaining check-ins.
 

@@ -26,7 +26,6 @@ export function ejectionAnnouncement(record: MeetingRecord, seatName: string): s
 
 export function openAccusation(session: BaySession, caller: BaySeatId, nominated: BaySeatId): BaySession {
   if (session.phase !== 'discuss') throw new Error('Ballots open from discuss.');
-  if (session.roundIndex < 1) throw new Error('Accusations open in the discuss phase of round 2.');
   const living = livingSeats(session.ejected);
   if (living.length < 2) throw new Error('Not enough seats to vote.');
   if (!living.includes(caller)) throw new Error('Ejected seats cannot call a vote.');

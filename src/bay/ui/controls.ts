@@ -4,7 +4,7 @@ export function discussControls(input: { roundIndex: number; helmLiving: boolean
   accuse: boolean;
   takePending: boolean;
 } {
-  const accuse = input.roundIndex >= 1 && input.helmLiving;
+  const accuse = input.helmLiving;
   return { notes: true, advance: true, accuse, takePending: accuse && input.pending };
 }
 

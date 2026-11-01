@@ -21,7 +21,7 @@ Parallel Bay Check-ins replaced that objective. The seed, the static client, the
 
 ## Objective
 
-Eight seats share one bay watch. Each round, every living seat works the same check-in and submits in private. The board then shows every answer beside a fingerprint. Integrity moves from that board. From round 2, the seats may discuss with the board up and then eject someone.
+Eight seats share one bay watch. Each round, every living seat works the same check-in and submits in private. The board then shows every answer beside a fingerprint. Integrity moves from that board. The seats may discuss with the board up and then eject someone.
 
 Crew are trying to leave a record of true check-ins, and to remove the cell. The cell is trying to bend the record without looking like a single broken instrument, and to survive aboard.
 
@@ -51,7 +51,7 @@ A watch is 8 to 12 check-ins, default 10, unchanged from the legacy start screen
 
 1. **Check-in.** Each living seat sees the puzzle, the integrity meter as it stands, and their role banner. Saboteurs also see the cell. Submits are private. AI answers are fixed before Helm submits and do not depend on Helm's current answer.
 2. **Reveal.** Submits lock. The true answer, every living submission, and every fingerprint become public. Integrity updates once. Ejected seats are listed as absent and add no fingerprint.
-3. **Discuss.** The board stays on screen. The notes strip is available. Ballots stay closed. Round 1 ends here: notes are allowed, and the AI call does not run. There is no timer. From round 2, opening discuss runs the AI call once and shows a pending nomination or silence. Helm takes that nomination to a ballot, replaces it, or advances. Advancing spends the round's single accusation.
+3. **Discuss.** The board stays on screen. The notes strip is available. Ballots stay closed. There is no timer. On every round, including round 1, opening discuss runs the AI call once and shows a pending nomination or silence. Helm takes that nomination to a ballot, replaces it, or advances. Advancing spends the round's single accusation.
 4. **Vote,** if Helm opens ballots. One accusation. Living seats ballot. A strict majority ejects. The watch may end on that ejection.
 5. **Next check-in,** or the summary if the round limit was reached or a side has been eliminated.
 
@@ -106,11 +106,11 @@ The social layer keeps accusations and adds a phase the signal loop never had.
 
 The board is visible for the whole discuss phase. The notes strip is a local scratchpad, 2000 characters, unscored, invisible to AIs, off the RNG streams. Solo play has no generated chat. The strip is the slot a later client fills with seat-visible messages. The gate does not depend on that chat existing.
 
-"Longer" is structural. The legacy client lets a seat call a vote from the middle of the next packet, and an AI call can appear on that same screen. Here the board is the screen, ballots stay closed until Helm leaves discuss toward a vote, and round 1 never runs a call. Two boards exist before the first ballot. No minimum number of seconds is required. The AI policy still names a seat on its own when discuss opens. That nomination waits on the board. It does not start ballots.
+"Longer" is structural. The legacy client lets a seat call a vote from the middle of the next packet, and an AI call can appear on that same screen. Here the board is the screen, ballots stay closed until Helm leaves discuss toward a vote, and every round, round 1 included, may run a call. Two boards exist before the first ballot. No minimum number of seconds is required. The AI policy still names a seat on its own when discuss opens. That nomination waits on the board. It does not start ballots.
 
 ## Accusations, ejection, wins
 
-From the discuss phase of round 2: one accusation per round. The caller names one other living seat. Every living seat votes for a living seat or skips. More than half the living seats must agree.
+From the discuss phase of every round: one accusation per round. The caller names one other living seat. Every living seat votes for a living seat or skips. More than half the living seats must agree.
 
 | Living | Votes to eject |
 | --- | --- |
@@ -147,7 +147,7 @@ Crew, each check-in: probability 0.82 exact, 0.15 on the card's single near key,
 
 Saboteur AIs take one shared plan per round so they are rarely all wrong together. With three alive, probability 0.50 all honest, 0.30 exactly one near-miss, 0.12 exactly two near-misses, 0.05 exactly one blatant, and 0.03 all three near-miss. The all-near row is the rare all-wrong round. Plans for two living saboteurs and for one are in `game-rules.md`. The primary nick walks the living cell by round index.
 
-Suspicion for votes is public: a miss mean (exact 0, near-miss 0.55, blatant 1) mixed 3:1 with how often that seat's lean marks match the modal mark on the log. Quick-fact and odd-one-out submissions do not carry a mark. A number-sense submission of `truth + 1` or of the trap value does. Crew AIs call at suspicion 0.40. They never auto-call from Helm's seat. The call is evaluated when discuss opens, from round 2 on, and waits as a pending nomination. If no crew AI would call, a saboteur AI frames at probability 0.12 above suspicion 0.30, and never names a partner. On the ballot, a saboteur AI votes for themselves at probability 0.08. Partners are excluded from saboteur nominations.
+Suspicion for votes is public: a miss mean (exact 0, near-miss 0.55, blatant 1) mixed 3:1 with how often that seat's lean marks match the modal mark on the log. Quick-fact and odd-one-out submissions do not carry a mark. A number-sense submission of `truth + 1` or of the trap value does. Crew AIs call at suspicion 0.40. They never auto-call from Helm's seat. The call is evaluated when discuss opens, on every round, and waits as a pending nomination. If no crew AI would call, a saboteur AI frames at probability 0.12 above suspicion 0.30, and never names a partner. On the ballot, a saboteur AI votes for themselves at probability 0.08. Partners are excluded from saboteur nominations.
 
 Draw order, constants, and the "consume the draw even when it is ignored" rule are in `game-rules.md`. They exist so a replay does not depend on which branch an AI took.
 
@@ -202,7 +202,7 @@ This migration has landed. The bay modules live in `src/bay/`, and the client mo
 | Rescue formula and `RESCUE_WIN` / `RESCUE_FAIL` | Integrity basis points, 70% and 55% |
 | `verdictAfterEject` compares one saboteur id | Crew win only when zero saboteurs remain. Saboteur win when zero crew remain |
 | Continuing after an ejection means "that was crew" | Continuing publishes no role |
-| Accusation available once round 1 is logged, including mid-packet | Accusation only in discuss, from round 2 |
+| Accusation available once round 1 is logged, including mid-packet | Accusation only in discuss, every round |
 | Skeptic, Pattern, Explorer, `sabotageDecision` | Crew error table and the cell plan |
 
 Legacy files the cutover deletes or stops calling: `src/game/signals.ts`, the packet and trust types, the rescue path in `src/game/scoring.ts`, `src/ai/skeptic.ts`, `src/ai/pattern.ts`, `src/ai/explorer.ts`, `src/ai/sabotage.ts`, and the trust sliders plus rescue copy in `src/ui`. Keep `src/game/rng.ts`. Keep the strict-majority count in `majorityEject` (it already uses `floor(n / 2) + 1`). Replace the single-saboteur verdicts and the rescue bands in `src/game/vote.ts`.

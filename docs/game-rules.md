@@ -220,7 +220,7 @@ Row 1 is an aligned bay. Row 2 is a false consensus. Row 3 is a near-miss cluste
 
 Then clamp to the closed range 2.0%–98.0% (200–9800).
 
-The meter moves on round 1, before any vote exists. Crossing 70% mid-watch does not end the watch. Falling below 55% mid-watch does not end the watch. Meter wins are scored only when the round limit is reached and no ejection has already ended the watch.
+The meter moves on round 1. Crossing 70% mid-watch does not end the watch. Falling below 55% mid-watch does not end the watch. Meter wins are scored only when the round limit is reached and no ejection has already ended the watch.
 
 Worked path from a 42.0% start, eight seats living:
 
@@ -235,15 +235,15 @@ Worked path from a 42.0% start, eight seats living:
 
 Resolving a check-in opens the discuss phase. The board stays up: truth, submissions, fingerprints, and the integrity delta. A notes strip sits with the board. You can append to a scratchpad of at most 2000 characters. Notes are local to your console. They are not shown to AI seats, they are not scored, and they are not inputs to any stream.
 
-From round 2 onward, ballots can be opened only from this phase, after that round's board is visible. Round 1 has a discuss phase and no call. Check-in has no vote control. There is no clock. The phase is the gate.
+Ballots can be opened only from this phase, on every round including round 1, after that round's board is visible. Check-in has no vote control. There is no clock. The phase is the gate.
 
-Entering discuss on round 2 or later runs the AI call once, and the result sits on the board as a pending nomination or as silence. Ballots stay closed while you read and write. You then take that nomination to a ballot, replace it with a nomination of your own, or advance. Advancing discards the pending nomination and spends the round's accusation. AI seats do not advance the phase and do not open ballots on their own.
+Entering discuss on any round, including round 1, runs the AI call once, and the result sits on the board as a pending nomination or as silence. Ballots stay closed while you read and write. You then take that nomination to a ballot, replace it with a nomination of your own, or advance. Advancing discards the pending nomination and spends the round's accusation. AI seats do not advance the phase and do not open ballots on their own.
 
 A later multiplayer client can put seat-visible chat in the notes strip. Solo play keeps notes only. The phase gate stays either way.
 
 ## Accusations
 
-Accusations open in the discuss phase of round 2, and in the discuss phase of each later round. Each round allows one accusation.
+Accusations open in the discuss phase of every round, including round 1. Each round allows one accusation.
 
 Any living seat may call it and name one other living seat. That name starts the vote. It does not decide the outcome. Every living seat then votes for a living seat or skips.
 
@@ -368,7 +368,7 @@ A crew AI will name the other living seat with the highest suspicion when that s
 
 A saboteur AI uses that rule on the living crew only. Partners and their own seat are excluded. The threshold stays 0.40.
 
-The auto-call runs when discuss opens on round 2 or later. It does not run on round 1. The earliest crew AI in roster order who would name someone becomes the pending caller. Helm is never that caller. If no crew AI would call, one draw on the vote stream decides a frame. Below 0.12, the earliest living saboteur AI is the pending caller, naming their highest eligible suspicion, and only when that score is at least 0.30. They never name a partner or themselves. At 0.12 and above, the pending call is empty. That frame draw is taken whenever no crew AI would call, including when you later advance without ballots.
+The auto-call runs when discuss opens on every round, including round 1. The earliest crew AI in roster order who would name someone becomes the pending caller. Helm is never that caller. If no crew AI would call, one draw on the vote stream decides a frame. Below 0.12, the earliest living saboteur AI is the pending caller, naming their highest eligible suspicion, and only when that score is at least 0.30. They never name a partner or themselves. At 0.12 and above, the pending call is empty. That frame draw is taken whenever no crew AI would call, including when you later advance without ballots.
 
 If you replace the pending nomination with your own, yours is the accusation. The frame draw is not repeated.
 
