@@ -75,8 +75,8 @@ export function StartScreen({ onStart }: StartScreenProps) {
           </li>
           <li>Every living seat gets the same quiz. Rounds cycle easy, medium, harder. Submit in private.</li>
           <li>The board opens. Each answer shows its error class, its distance, and its instrument id. Integrity moves.</li>
-          <li>Discuss with the board up. Notes stay on this console. Round 1 has no vote.</li>
-          <li>From round 2, take a waiting nomination, name someone yourself, or advance. Advancing spends that round&apos;s accusation.</li>
+          <li>Discuss with the board up. Notes stay on this console. Any round, including round 1, can end in a vote.</li>
+          <li>Take a waiting nomination, name someone yourself, or advance. Advancing spends that round&apos;s accusation.</li>
         </ol>
         <p className="fine">From 55% up to but not including 70% at the end, with a saboteur still aboard, the watch is a stalemate.</p>
       </section>

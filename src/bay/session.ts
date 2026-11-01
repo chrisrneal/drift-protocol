@@ -133,7 +133,6 @@ export function revealCheckIn(
     log: [...session.log, record],
     pendingCall: null,
   };
-  if (session.roundIndex < 1) return revealed;
   const nomination = evaluateNomination({
     roundIndex: session.roundIndex,
     voteState: session.voteState,

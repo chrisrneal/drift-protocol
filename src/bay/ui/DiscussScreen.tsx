@@ -100,7 +100,7 @@ export function DiscussScreen({ session, notes, onNotes, onAdvance, onAccuse, on
       ) : null}
       {controls.advance ? (
         <button type="button" className="primary" onClick={onAdvance}>
-          {session.roundIndex === 0 ? 'Next check-in' : session.roundIndex + 1 >= session.rounds ? 'Close the watch' : 'Advance without a vote'}
+          {session.roundIndex + 1 >= session.rounds ? 'Close the watch' : 'Advance without a vote'}
         </button>
       ) : null}
     </main>

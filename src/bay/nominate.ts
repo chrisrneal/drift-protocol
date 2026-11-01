@@ -20,7 +20,6 @@ export function evaluateNomination(input: {
   ejected: readonly BaySeatId[];
   log: readonly CheckInRecord[];
 }): { pendingCall: PendingCall | null; voteState: number } {
-  if (input.roundIndex < 1) return { pendingCall: null, voteState: input.voteState };
   const living = livingSeats(input.ejected);
   const suspicion = suspicionScores(input.log);
   for (const seat of BAY_SEATS) {

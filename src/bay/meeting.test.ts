@@ -51,11 +51,23 @@ describe('majorityEject', () => {
 });
 
 describe('accusations', () => {
-  it('rejects ballots during round 1, during check-in, and when no nomination is waiting', () => {
+  it('opens and resolves a meeting from round 1 discuss', () => {
+    const opened = createBaySession({ rounds: 8, seed: 42 });
+    let session = revealCheckIn(opened, truthMap(opened));
+    expect(session.roundIndex).toBe(0);
+    session = openAccusation(session, 'helm', 'sonar');
+    expect(session.phase).toBe('meeting');
+    const votes = ballots(livingSeats(session.ejected), () => 'skip');
+    session = resolveMeeting(session, votes);
+    expect(session.meetings).toHaveLength(1);
+    expect(session.meetings[0].roundIndex).toBe(0);
+    expect(session.roundIndex).toBe(1);
+  });
+
+  it('rejects ballots during check-in and when no nomination is waiting', () => {
     const opened = createBaySession({ rounds: 8, seed: 42 });
     expect(() => openAccusation(opened, 'helm', 'sonar')).toThrow(/Ballots open from discuss/);
     const round1 = revealCheckIn(opened, truthMap(opened));
-    expect(() => openAccusation(round1, 'helm', 'sonar')).toThrow(/round 2/);
     expect(() => takePending(round1)).toThrow(/No nomination is waiting/);
   });
 
