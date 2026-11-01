@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { viewFor } from '../roles';
 import { BAY_SEATS, type BaySeatId, type BaySession } from '../types';
 import { clampNotes } from '../notes';
@@ -26,7 +25,6 @@ export function DiscussScreen({ session, notes, onNotes, onAdvance, onAccuse, on
   const record = session.log[session.log.length - 1];
   const view = viewFor('helm', session.cell, session.plan?.postures.helm ?? null, record?.puzzle);
   const livingTargets = BAY_SEATS.filter((seat) => seat !== 'helm' && !session.ejected.includes(seat));
-  const [target, setTarget] = useState<BaySeatId>(livingTargets[0] ?? 'sonar');
   const truth = record ? formatTruth(record.puzzle) : null;
 
   return (
@@ -77,32 +75,32 @@ export function DiscussScreen({ session, notes, onNotes, onAdvance, onAccuse, on
           onChange={(event) => onNotes(clampNotes(event.target.value))}
         />
       </section>
-      {controls.accuse ? (
-        <section className="panel" aria-labelledby="accuse">
-          <h2 id="accuse">Accusation</h2>
-          {controls.takePending && session.pendingCall ? (
-            <button type="button" className="primary" onClick={onTakePending}>
-              Take {SEAT_NAME[session.pendingCall.caller]} naming {SEAT_NAME[session.pendingCall.nominated]}
-            </button>
-          ) : null}
-          <div className="actions" role="radiogroup" aria-label="Seat to name">
-            {livingTargets.map((seat) => (
-              <label key={seat} className={target === seat ? 'choice selected' : 'choice'}>
-                <input type="radio" name="target" checked={target === seat} onChange={() => setTarget(seat)} />
-                {SEAT_NAME[seat]} · {INSTRUMENT[seat]}
-              </label>
-            ))}
-          </div>
-          <button type="button" onClick={() => onAccuse(target)}>
-            Name this seat
+      {controls.accuse && session.pendingCall ? (
+        <section className="panel" aria-labelledby="call">
+          <h2 id="call">{SEAT_NAME[session.pendingCall.caller]} calls a vote</h2>
+          <p>
+            {SEAT_NAME[session.pendingCall.caller]} names {SEAT_NAME[session.pendingCall.nominated]}.
+          </p>
+          <button type="button" className="primary" onClick={onTakePending}>
+            Go to the vote
           </button>
         </section>
       ) : null}
-      {controls.advance ? (
-        <button type="button" className="primary" onClick={onAdvance}>
-          {session.roundIndex + 1 >= session.rounds ? 'Close the watch' : 'Advance without a vote'}
-        </button>
+      {controls.accuse ? (
+        <section className="panel" aria-labelledby="accuse">
+          <h2 id="accuse">Call a vote</h2>
+          <div className="actions accuse-actions">
+            {livingTargets.map((seat) => (
+              <button key={seat} type="button" className="choice" onClick={() => onAccuse(seat)}>
+                {SEAT_NAME[seat]} · {INSTRUMENT[seat]}
+              </button>
+            ))}
+          </div>
+        </section>
       ) : null}
+      <button type="button" className={controls.accuse ? undefined : 'primary'} onClick={onAdvance}>
+        {session.roundIndex + 1 >= session.rounds ? 'Close the watch' : 'No vote, next check-in'}
+      </button>
     </main>
   );
 }

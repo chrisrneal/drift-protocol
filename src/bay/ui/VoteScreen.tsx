@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { livingSeats, viewFor } from '../roles';
 import type { BaySeatId, BaySession } from '../types';
 import { SEAT_NAME } from './format';
@@ -13,7 +12,6 @@ export function VoteScreen({ session, onCast }: VoteScreenProps) {
   const meeting = session.meeting;
   const living = livingSeats(session.ejected);
   const helmLiving = living.includes('helm');
-  const [choice, setChoice] = useState<BaySeatId | 'skip' | null>(null);
   const view = viewFor('helm', session.cell, session.plan?.postures.helm ?? null, session.puzzle);
   if (!meeting) return null;
 
@@ -26,36 +24,25 @@ export function VoteScreen({ session, onCast }: VoteScreenProps) {
         {SEAT_NAME[meeting.caller]} names {SEAT_NAME[meeting.nominated]}. Every seat still on the watch votes for
         someone to eject, or skips. It takes more than half of those seats.
       </p>
-      <form
-        className="panel"
-        onSubmit={(event) => {
-          event.preventDefault();
-          if (helmLiving && !choice) return;
-          onCast(helmLiving ? choice : null);
-        }}
-      >
+      <section className="panel">
         <h2>{helmLiving ? 'Your vote' : 'You are ejected'}</h2>
         {helmLiving ? (
-          <div className="actions vote-options" role="radiogroup" aria-label="Who to eject">
+          <div className="actions vote-options">
             {[...living, 'skip' as const].map((option) => (
-              <label key={option} className={choice === option ? 'choice selected' : 'choice'}>
-                <input
-                  type="radio"
-                  name="vote"
-                  checked={choice === option}
-                  onChange={() => setChoice(option)}
-                />
+              <button key={option} type="button" className="choice" onClick={() => onCast(option)}>
                 {option === 'skip' ? 'Skip' : SEAT_NAME[option]}
-              </label>
+              </button>
             ))}
           </div>
         ) : (
-          <p>You stay on the roster, but you cannot vote.</p>
+          <>
+            <p>You stay on the roster, but you cannot vote.</p>
+            <button type="button" className="primary" onClick={() => onCast(null)}>
+              Hear the votes
+            </button>
+          </>
         )}
-        <button type="submit" className="primary" disabled={helmLiving && choice === null}>
-          {helmLiving ? 'Lock vote' : 'Hear the votes'}
-        </button>
-      </form>
+      </section>
     </main>
   );
 }
